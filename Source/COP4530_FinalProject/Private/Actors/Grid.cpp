@@ -1,6 +1,8 @@
 #include "Actors/Grid.h"
+#include "Actors/BaseObstacle.h"
 #include "Components/BillboardComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AGrid::AGrid()
 {
@@ -18,6 +20,7 @@ AGrid::AGrid()
 	GridLocation = FVector(0.f);
 	GridSizeWorld = FVector2D(500.f);
 	TileSize = 50.f;
+	TileSizeOffset = 5.f;
 	GridTileNumberX = 0;
 	GridTileNumberY = 0;
 	GridBoxColor = FColor::Blue;
@@ -82,8 +85,54 @@ void AGrid::DrawTile()
 			const FVector DrawUp = SceneComponent->GetForwardVector() * (TileSize + Y * TileSize * 2); // Draw Vertically
 			
 			TilePosition = GridBottomLeft() + DrawRight + DrawUp;
+
+			FHitResult TraceHit;
+
+			// Adds PFC_Ground as Traced Traces
+			TArray<TEnumAsByte<ETraceTypeQuery>> GroundTypesArray;
+			GroundTypesArray.Add(UEngineTypes::ConvertToTraceType(PFC_Ground)); // Convert the user-defined PFC_Ground collision channel to ETraceTypeQuery
 			
-			DrawDebugSolidPlane(GetWorld(), FPlane(0.f, 0.f, 1.f, TilePosition.Z), TilePosition, TileSize - 5.f, FColor::Yellow, true, 1000000.f);
+			// Adds PFC_Obstacle as Traced Traces
+			TArray<TEnumAsByte<ETraceTypeQuery>> ObstacleTypesArray;
+			ObstacleTypesArray.Add(UEngineTypes::ConvertToTraceType(PFC_Obstacle)); // Convert the user-defined PFC_Ground collision channel to ETraceTypeQuery
+
+			if (TraceSphere(GroundTypesArray[0], TraceHit))
+			{
+				if (TraceSphere(ObstacleTypesArray[0], TraceHit))
+				{
+					const ABaseObstacle* Obstacle = Cast<ABaseObstacle>(TraceHit.GetActor());
+					DebugGroundType(Obstacle->GroundType);
+				}
+				else DebugGroundType(EGroundTypes::EGT_Normal);
+			}
 		}
 	}
+}
+
+bool AGrid::TraceSphere(ETraceTypeQuery TraceType, FHitResult& HitActor) const
+{
+	const TArray<AActor*> IgnoreActors;
+	
+	return UKismetSystemLibrary::SphereTraceSingle(GetWorld(), TilePosition, TilePosition, TileSize - TileSizeOffset, TraceType, false, IgnoreActors, EDrawDebugTrace::ForDuration, HitActor, true, FLinearColor::Red, FLinearColor::Green, 20.f);
+}
+
+void AGrid::DebugGroundType(EGroundTypes GroundType)
+{
+	switch (GroundType)
+	{
+	case EGroundTypes::EGT_Normal:
+		TileColor = FColor::Silver;
+		break;
+	case EGroundTypes::EGT_Difficult:
+		TileColor = FColor::Yellow;
+		break;
+	case EGroundTypes::EGT_ReallyDifficult:
+		TileColor = FColor::Orange;
+		break;
+	case EGroundTypes::EGT_Impossible:
+		TileColor = FColor::Red;
+		break;
+	}
+
+	DrawDebugSolidPlane(GetWorld(), FPlane(0.f, 0.f, 1.f, TilePosition.Z), TilePosition, TileSize - TileSizeOffset, TileColor, true, 5.f);
 }

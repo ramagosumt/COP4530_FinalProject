@@ -4,6 +4,12 @@
 #include "GameFramework/Actor.h"
 #include "Grid.generated.h"
 
+/** Defines */
+#define PFC_Ground ECC_GameTraceChannel1 // User-defined collision channel for Grounds
+#define PFC_Obstacle ECC_GameTraceChannel2 // User-defined collision channel for Obstacles
+
+enum class EGroundTypes : uint8;
+
 class UBillboardComponent;
 
 UCLASS()
@@ -28,6 +34,9 @@ public:
 	UPROPERTY(EditInstanceOnly, Category= "Grid")
 	float TileSize; // Tile Size
 
+	UPROPERTY(EditInstanceOnly, Category= "Grid")
+	float TileSizeOffset; // Offset of Tiles
+
 	UPROPERTY(VisibleInstanceOnly, Category= "Grid")
 	int32 GridTileNumberX; // Number of Horizontal Tiles
 
@@ -36,6 +45,9 @@ public:
 
 	UPROPERTY(EditInstanceOnly, Category= "Grid")
 	FVector TilePosition; // Position of Tiles
+
+	UPROPERTY(EditInstanceOnly, Category= "Grid")
+	FColor TileColor; // Color of Tiles
 
 	UPROPERTY(EditInstanceOnly, Category= "Debug")
 	FColor GridBoxColor;
@@ -57,6 +69,7 @@ protected:
 
 	FVector GridBottomLeft() const; // Calculate the Position of BottomLeft
 	void GridTileNumber(int32& X, int32& Y) const; // Calculate the Amount of Tiles
-
 	void DrawTile(); // Draw the Tiles
+	bool TraceSphere(ETraceTypeQuery TraceType, FHitResult& HitActor) const; // Trace the Spheres
+	void DebugGroundType(EGroundTypes GroundType);
 };
