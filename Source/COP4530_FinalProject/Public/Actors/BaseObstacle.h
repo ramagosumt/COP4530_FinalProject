@@ -31,7 +31,7 @@ class COP4530_FINALPROJECT_API ABaseObstacle : public AActor
 	
 public:
 
-	UPROPERTY(EditInstanceOnly, Category= "Grid")
+	UPROPERTY(EditAnywhere, Category= "Grid")
 	EGroundTypes GroundType;
 	
 	ABaseObstacle();
