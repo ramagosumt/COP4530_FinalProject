@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Data/PathfindingDataStructs.h"
 #include "Grid.generated.h"
 
 /** Defines */
@@ -11,6 +12,8 @@
 enum class EGroundTypes : uint8;
 
 class UBillboardComponent;
+
+struct FPathfindingData;
 
 UCLASS()
 class COP4530_FINALPROJECT_API AGrid : public AActor
@@ -49,6 +52,9 @@ public:
 	UPROPERTY(EditInstanceOnly, Category= "Grid")
 	FColor TileColor; // Color of Tiles
 
+	UPROPERTY(VisibleInstanceOnly, Category= "Grid")
+	TMap<FVector2D, FPathfindingData> PathfindingMap;
+
 	UPROPERTY(EditInstanceOnly, Category= "Debug")
 	FColor GridBoxColor;
 
@@ -72,4 +78,5 @@ protected:
 	void DrawTile(); // Draw the Tiles
 	bool TraceSphere(ETraceTypeQuery TraceType, FHitResult& HitActor) const; // Trace the Spheres
 	void DebugGroundType(EGroundTypes GroundType);
+	void GenerateMapDataFromWorld();
 };

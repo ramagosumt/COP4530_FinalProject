@@ -11,5 +11,8 @@ UCLASS()
 class COP4530_FINALPROJECT_API AGrassObstacle : public ABaseObstacle
 {
 	GENERATED_BODY()
+
+public:
+	AGrassObstacle();
 	
 };

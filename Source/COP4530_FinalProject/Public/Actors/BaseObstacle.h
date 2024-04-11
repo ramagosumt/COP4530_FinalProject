@@ -15,7 +15,8 @@ enum class EGroundTypes : uint8
 	EGT_Normal UMETA(DisplayName = "Normal"),
 	EGT_Difficult UMETA(DisplayName= "Difficult"),
 	EGT_ReallyDifficult UMETA(DisplayName= "ReallyDifficult"),
-	EGT_Impossible UMETA(DisplayName= "Impossible")
+	EGT_Impossible UMETA(DisplayName= "Impossible"),
+	EGT_None UMETA(DisplayName= "None")
 };
 
 UCLASS()
@@ -31,7 +32,7 @@ class COP4530_FINALPROJECT_API ABaseObstacle : public AActor
 	
 public:
 
-	UPROPERTY(EditAnywhere, Category= "Grid")
+	UPROPERTY(EditAnywhere)
 	EGroundTypes GroundType;
 	
 	ABaseObstacle();

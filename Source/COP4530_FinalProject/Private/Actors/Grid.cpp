@@ -2,6 +2,7 @@
 #include "Actors/BaseObstacle.h"
 #include "Components/BillboardComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Data/PathfindingDataStructs.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 AGrid::AGrid()
@@ -40,6 +41,8 @@ void AGrid::OnConstruction(const FTransform& Transform)
 
 	GridTileNumber(GridTileNumberX, GridTileNumberY);
 
+	GenerateMapDataFromWorld();
+
 	DrawTile();
 	
 }
@@ -76,36 +79,13 @@ void AGrid::GridTileNumber(int32& X, int32& Y) const
 
 void AGrid::DrawTile()
 {
-	for (int X = 0; X < GridTileNumberX; X++)
+	TArray<FVector2D> Keys;
+	PathfindingMap.GetKeys(Keys);
+
+	for (const FVector2D K : Keys)
 	{
-		for (int Y = 0; Y < GridTileNumberY; Y++)
-		{
-			// Draw = Draw Direction * Draw Length
-			const FVector DrawRight = SceneComponent->GetRightVector() * (TileSize + X * TileSize * 2); // Draw Horizontally
-			const FVector DrawUp = SceneComponent->GetForwardVector() * (TileSize + Y * TileSize * 2); // Draw Vertically
-			
-			TilePosition = GridBottomLeft() + DrawRight + DrawUp;
-
-			FHitResult TraceHit;
-
-			// Adds PFC_Ground as Traced Traces
-			TArray<TEnumAsByte<ETraceTypeQuery>> GroundTypesArray;
-			GroundTypesArray.Add(UEngineTypes::ConvertToTraceType(PFC_Ground)); // Convert the user-defined PFC_Ground collision channel to ETraceTypeQuery
-			
-			// Adds PFC_Obstacle as Traced Traces
-			TArray<TEnumAsByte<ETraceTypeQuery>> ObstacleTypesArray;
-			ObstacleTypesArray.Add(UEngineTypes::ConvertToTraceType(PFC_Obstacle)); // Convert the user-defined PFC_Ground collision channel to ETraceTypeQuery
-
-			if (TraceSphere(GroundTypesArray[0], TraceHit))
-			{
-				if (TraceSphere(ObstacleTypesArray[0], TraceHit))
-				{
-					const ABaseObstacle* Obstacle = Cast<ABaseObstacle>(TraceHit.GetActor());
-					DebugGroundType(Obstacle->GroundType);
-				}
-				else DebugGroundType(EGroundTypes::EGT_Normal);
-			}
-		}
+		const FPathfindingData* CurrentData = PathfindingMap.Find(K);
+		DebugGroundType(CurrentData->GroundType);
 	}
 }
 
@@ -132,7 +112,70 @@ void AGrid::DebugGroundType(EGroundTypes GroundType)
 	case EGroundTypes::EGT_Impossible:
 		TileColor = FColor::Red;
 		break;
+	case EGroundTypes::EGT_None:
+		break;
 	}
 
 	DrawDebugSolidPlane(GetWorld(), FPlane(0.f, 0.f, 1.f, TilePosition.Z), TilePosition, TileSize - TileSizeOffset, TileColor, true, 5.f);
+}
+
+void AGrid::GenerateMapDataFromWorld()
+{
+	for (int X = 0; X < GridTileNumberX; X++)
+	{
+		for (int Y = 0; Y < GridTileNumberY; Y++)
+		{
+			// Draw = Draw Direction * Draw Length
+			const FVector DrawRight = SceneComponent->GetRightVector() * (TileSize + X * TileSize * 2); // Draw Horizontally
+			const FVector DrawUp = SceneComponent->GetForwardVector() * (TileSize + Y * TileSize * 2); // Draw Vertically
+			
+			TilePosition = GridBottomLeft() + DrawRight + DrawUp;
+
+			FHitResult TraceHit;
+
+			// Adds PFC_Ground as Traced Traces
+			TArray<TEnumAsByte<ETraceTypeQuery>> GroundTypesArray;
+			GroundTypesArray.Add(UEngineTypes::ConvertToTraceType(PFC_Ground)); // Convert the user-defined PFC_Ground collision channel to ETraceTypeQuery
+			
+			// Adds PFC_Obstacle as Traced Traces
+			TArray<TEnumAsByte<ETraceTypeQuery>> ObstacleTypesArray;
+			ObstacleTypesArray.Add(UEngineTypes::ConvertToTraceType(PFC_Obstacle)); // Convert the user-defined PFC_Ground collision channel to ETraceTypeQuery
+
+			if (TraceSphere(GroundTypesArray[0], TraceHit))
+			{
+				if (TraceSphere(ObstacleTypesArray[0], TraceHit))
+				{
+					const ABaseObstacle* Obstacle = Cast<ABaseObstacle>(TraceHit.GetActor());
+
+					TSharedPtr<FPathfindingData> PathfindingData = MakeShared<FPathfindingData>();
+
+					PathfindingData->GroundType = Obstacle->GroundType;
+					PathfindingData->WorldLocation = TilePosition;
+					PathfindingData->GridIndex = FVector2D(X, Y);
+					
+					PathfindingMap.Add(FVector2D(X, Y), *PathfindingData);
+				}
+				else
+				{
+					TSharedPtr<FPathfindingData> PathfindingData = MakeShared<FPathfindingData>();
+					
+					PathfindingData->GroundType = EGroundTypes::EGT_Normal;
+					PathfindingData->WorldLocation = TilePosition;
+					PathfindingData->GridIndex = FVector2D(X, Y);
+					
+					PathfindingMap.Add(FVector2D(X, Y), *PathfindingData);
+				}
+			}
+			else
+			{
+				TSharedPtr<FPathfindingData> PathfindingData = MakeShared<FPathfindingData>();
+				
+				PathfindingData->GroundType = EGroundTypes::EGT_None;
+				PathfindingData->WorldLocation = TilePosition;
+				PathfindingData->GridIndex = FVector2D(X, Y);
+				
+				PathfindingMap.Add(FVector2D(X, Y), *PathfindingData);
+			}
+		}
+	}
 }
