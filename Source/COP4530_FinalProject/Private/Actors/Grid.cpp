@@ -1,5 +1,6 @@
 #include "Actors/Grid.h"
 #include "Actors/BaseObstacle.h"
+#include "Actors/GridTile.h"
 #include "Components/BillboardComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Data/PathfindingDataStructs.h"
@@ -16,6 +17,8 @@ AGrid::AGrid()
 	// Create a BillboardComponent and attach it to RootComponent
 	BillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("BillboardComponent"));
 	BillboardComponent->SetupAttachment(GetRootComponent());
+	BillboardComponent->SetWorldLocation(FVector(0.f, -700.f, 0.f));
+	BillboardComponent->EditorScale = .25f;
 
 	// Initialize Variables
 	GridLocation = FVector(0.f);
@@ -50,7 +53,17 @@ void AGrid::OnConstruction(const FTransform& Transform)
 void AGrid::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
+	GetWorld()->GetFirstPlayerController()->bEnableMouseOverEvents = true;
+
+	FlushPersistentDebugLines(GetWorld());
+
+	SetGridLocation(SceneComponent->GetComponentLocation());
+
+	GenerateMapDataFromWorld();
+
+	SpawnTiles(true);
 }
 
 void AGrid::Tick(float DeltaTime)
@@ -85,7 +98,7 @@ void AGrid::DrawTile()
 	for (const FVector2D K : Keys)
 	{
 		const FPathfindingData* CurrentData = PathfindingMap.Find(K);
-		DebugGroundType(CurrentData->GroundType);
+		DebugGroundType(CurrentData->GroundType, CurrentData->WorldLocation);
 	}
 }
 
@@ -96,7 +109,7 @@ bool AGrid::TraceSphere(ETraceTypeQuery TraceType, FHitResult& HitActor) const
 	return UKismetSystemLibrary::SphereTraceSingle(GetWorld(), TilePosition, TilePosition, TileSize - TileSizeOffset, TraceType, false, IgnoreActors, EDrawDebugTrace::ForDuration, HitActor, true, FLinearColor::Red, FLinearColor::Green, 20.f);
 }
 
-void AGrid::DebugGroundType(EGroundTypes GroundType)
+void AGrid::DebugGroundType(EGroundTypes GroundType, FVector GroundLocation)
 {
 	switch (GroundType)
 	{
@@ -104,19 +117,20 @@ void AGrid::DebugGroundType(EGroundTypes GroundType)
 		TileColor = FColor::Silver;
 		break;
 	case EGroundTypes::EGT_Difficult:
-		TileColor = FColor::Yellow;
+		TileColor = FColor::Turquoise;
 		break;
 	case EGroundTypes::EGT_ReallyDifficult:
 		TileColor = FColor::Orange;
 		break;
 	case EGroundTypes::EGT_Impossible:
-		TileColor = FColor::Red;
+		TileColor = FColor::Purple;
 		break;
 	case EGroundTypes::EGT_None:
-		break;
+		TileColor = FColor::Blue;
+		return;
 	}
 
-	DrawDebugSolidPlane(GetWorld(), FPlane(0.f, 0.f, 1.f, TilePosition.Z), TilePosition, TileSize - TileSizeOffset, TileColor, true, 5.f);
+	DrawDebugSolidPlane(GetWorld(), FPlane(0.f, 0.f, 1.f, TilePosition.Z), GroundLocation, TileSize - TileSizeOffset, TileColor, true, 5.f);
 }
 
 void AGrid::GenerateMapDataFromWorld()
@@ -175,6 +189,30 @@ void AGrid::GenerateMapDataFromWorld()
 				PathfindingData->GridIndex = FVector2D(X, Y);
 				
 				PathfindingMap.Add(FVector2D(X, Y), *PathfindingData);
+			}
+		}
+	}
+}
+
+void AGrid::SpawnTiles(const bool SpawnNone)
+{
+	TArray<FVector2D> Keys;
+	PathfindingMap.GetKeys(Keys);
+
+	for (const FVector2D K : Keys)
+	{
+		const FPathfindingData* CurrentData = PathfindingMap.Find(K);
+
+		if (CurrentData->GroundType != EGroundTypes::EGT_None || SpawnNone)
+		{
+			FTransform CurrentTransform(CurrentData->WorldLocation);
+		
+			AGridTile* GridTile = GetWorld()->SpawnActorDeferred<AGridTile>(AGridTile::StaticClass(), CurrentTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+			if (IsValid(GridTile))
+			{
+				GridTile->FinishSpawning(CurrentTransform);
+				GridTile->SetGrid(this);
+				GridTile->SetGridIndex(CurrentData->GridIndex);
 			}
 		}
 	}

@@ -23,7 +23,7 @@ class COP4530_FINALPROJECT_API AGrid : public AActor
 	UPROPERTY()
 	USceneComponent* SceneComponent;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly)
 	UBillboardComponent* BillboardComponent;
 	
 public:
@@ -66,8 +66,10 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void Tick(float DeltaTime) override;
 	
-	FORCEINLINE FVector GetGridLocation() const { return GridLocation;};
-	FORCEINLINE void SetGridLocation(const FVector NewGridLocation) { GridLocation = NewGridLocation; } 
+	FORCEINLINE FVector GetGridLocation() const { return GridLocation; };
+	FORCEINLINE void SetGridLocation(const FVector NewGridLocation) { GridLocation = NewGridLocation; }
+	FORCEINLINE TMap<FVector2D, FPathfindingData> GetPathfindingMap() const { return PathfindingMap; };
+	FORCEINLINE void SetPathfindingMap(const TMap<FVector2D, FPathfindingData>& NewPathfindingMap) { PathfindingMap = NewPathfindingMap; } 
 
 protected:
 	
@@ -77,6 +79,7 @@ protected:
 	void GridTileNumber(int32& X, int32& Y) const; // Calculate the Amount of Tiles
 	void DrawTile(); // Draw the Tiles
 	bool TraceSphere(ETraceTypeQuery TraceType, FHitResult& HitActor) const; // Trace the Spheres
-	void DebugGroundType(EGroundTypes GroundType);
+	void DebugGroundType(EGroundTypes GroundType, FVector GroundLocation);
 	void GenerateMapDataFromWorld();
+	void SpawnTiles(const bool SpawnNone);
 };

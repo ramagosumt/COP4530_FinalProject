@@ -13,6 +13,7 @@ ABaseObstacle::ABaseObstacle()
 	StaticMeshComponent->SetupAttachment(GetRootComponent());
 	UStaticMesh* CubeMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("StaticMesh'/Engine/BasicShapes/Cube.Cube'")).Object;
 	StaticMeshComponent->SetStaticMesh(CubeMesh);
+	StaticMeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 	StaticMeshComponent->SetCollisionResponseToChannel(PFC_Obstacle, ECR_Block);
 
 	GroundType = EGroundTypes::EGT_Difficult;
