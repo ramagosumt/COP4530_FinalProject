@@ -21,13 +21,20 @@ void AGridTile::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AGridTile::SetTileColor, 0.2f, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AGridTile::SetTile, 0.02f, false);
+	
 }
 
 void AGridTile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AGridTile::SetTile() const
+{
+	SetTileColor();
+	SetTileSize();
 }
 
 void AGridTile::SetTileColor() const
@@ -55,16 +62,39 @@ void AGridTile::SetTileColor() const
 		break;
 	}
 
-	if (bIsSelected) TileColor = UKismetMathLibrary::Conv_LinearColorToColor(UKismetMathLibrary::Conv_VectorToLinearColor(3 * UKismetMathLibrary::Conv_LinearColorToVector(UKismetMathLibrary::Conv_ColorToLinearColor(TileColor))));
+	if (bIsSelected) StaticMeshComponent->SetScalarParameterValueOnMaterials(FName("bIsSelected"), 1.f);
+		else StaticMeshComponent->SetScalarParameterValueOnMaterials(FName("bIsSelected"), 0.f);
+
+	if (bIsHovered) TileColor = UKismetMathLibrary::Conv_LinearColorToColor(UKismetMathLibrary::Conv_VectorToLinearColor(3 * UKismetMathLibrary::Conv_LinearColorToVector(UKismetMathLibrary::Conv_ColorToLinearColor(TileColor))));
 
 	StaticMeshComponent->SetVectorParameterValueOnMaterials(FName("TileColor"), UKismetMathLibrary::Conv_LinearColorToVector(UKismetMathLibrary::Conv_ColorToLinearColor(TileColor)));
+}
+
+void AGridTile::SetTileSize() const
+{
+	const FVector NewScale = this->GetActorScale() * Grid->GetTileSize() / 50.f;
+	StaticMeshComponent->SetWorldScale3D(FVector(NewScale.X, NewScale.Y, 1.f));
+}
+
+void AGridTile::SelectTile()
+{
+	SetIsSelected(true);
+
+	SetTileColor();
+}
+
+void AGridTile::DeselectTile()
+{
+	SetIsSelected(false);
+	
+	SetTileColor();
 }
 
 void AGridTile::NotifyActorBeginCursorOver()
 {
 	Super::NotifyActorBeginCursorOver();
 
-	SetIsSelected(true);
+	SetIsHovered(true);
 	
 	SetTileColor();
 }
@@ -73,7 +103,16 @@ void AGridTile::NotifyActorEndCursorOver()
 {
 	Super::NotifyActorEndCursorOver();
 
-	SetIsSelected(false);
+	SetIsHovered(false);
 
 	SetTileColor();
+}
+
+void AGridTile::NotifyActorOnClicked(FKey ButtonPressed)
+{
+	Super::NotifyActorOnClicked(ButtonPressed);
+
+	SelectTile();
+
+	Grid->SelectNewTile(this);
 }

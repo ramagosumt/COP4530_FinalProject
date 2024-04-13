@@ -12,6 +12,7 @@
 enum class EGroundTypes : uint8;
 
 class UBillboardComponent;
+class AGridTile;
 
 struct FPathfindingData;
 
@@ -55,6 +56,9 @@ public:
 	UPROPERTY(VisibleInstanceOnly, Category= "Grid")
 	TMap<FVector2D, FPathfindingData> PathfindingMap;
 
+	UPROPERTY(VisibleInstanceOnly)
+	AGridTile* SelectedTile;
+
 	UPROPERTY(EditInstanceOnly, Category= "Debug")
 	FColor GridBoxColor;
 
@@ -65,9 +69,13 @@ public:
 	
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void Tick(float DeltaTime) override;
+
+	void SelectNewTile(AGridTile* TileToSelect);
 	
 	FORCEINLINE FVector GetGridLocation() const { return GridLocation; };
 	FORCEINLINE void SetGridLocation(const FVector NewGridLocation) { GridLocation = NewGridLocation; }
+	FORCEINLINE float GetTileSize() const { return TileSize; };
+	FORCEINLINE void SetTileSize(const float NewTileSize) { TileSize = NewTileSize; }
 	FORCEINLINE TMap<FVector2D, FPathfindingData> GetPathfindingMap() const { return PathfindingMap; };
 	FORCEINLINE void SetPathfindingMap(const TMap<FVector2D, FPathfindingData>& NewPathfindingMap) { PathfindingMap = NewPathfindingMap; } 
 

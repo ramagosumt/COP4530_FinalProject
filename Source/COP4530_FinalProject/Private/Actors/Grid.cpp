@@ -54,9 +54,6 @@ void AGrid::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
-	GetWorld()->GetFirstPlayerController()->bEnableMouseOverEvents = true;
-
 	FlushPersistentDebugLines(GetWorld());
 
 	SetGridLocation(SceneComponent->GetComponentLocation());
@@ -216,4 +213,11 @@ void AGrid::SpawnTiles(const bool SpawnNone)
 			}
 		}
 	}
+}
+
+void AGrid::SelectNewTile(AGridTile* TileToSelect)
+{
+	if (IsValid(SelectedTile)) SelectedTile->DeselectTile();
+
+	SelectedTile = TileToSelect;
 }
