@@ -2,8 +2,8 @@
 #include "Actors/BaseObstacle.h"
 #include "Actors/GridTile.h"
 #include "Components/BillboardComponent.h"
-#include "DrawDebugHelpers.h"
 #include "Data/PathfindingDataStructs.h"
+#include "DrawDebugHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 AGrid::AGrid()

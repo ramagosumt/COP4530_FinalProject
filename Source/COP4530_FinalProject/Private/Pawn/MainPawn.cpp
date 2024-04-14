@@ -1,6 +1,5 @@
 #include "Pawn/MainPawn.h"
 
-
 AMainPawn::AMainPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;

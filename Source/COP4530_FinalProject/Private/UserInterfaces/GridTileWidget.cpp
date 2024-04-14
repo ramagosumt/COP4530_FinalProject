@@ -2,18 +2,6 @@
 #include "Actors/Grid.h"
 #include "Components/TextBlock.h"
 
-void UGridTileWidget::NativePreConstruct()
-{
-	Super::NativePreConstruct();
-	
-}
-
-void UGridTileWidget::NativeConstruct()
-{
-	Super::NativeConstruct();
-	
-}
-
 void UGridTileWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
