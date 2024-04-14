@@ -18,4 +18,5 @@ struct FPathfindingData
  EGroundTypes GroundType;
  FVector WorldLocation;
  FVector2D GridIndex;
+ int32 FinalCost;
 };

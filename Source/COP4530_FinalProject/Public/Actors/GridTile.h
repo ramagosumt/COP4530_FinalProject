@@ -5,6 +5,8 @@
 #include "GridTile.generated.h"
 
 class AGrid;
+class UWidgetComponent;
+class UGridTileWidget;
 
 UCLASS()
 class COP4530_FINALPROJECT_API AGridTile : public AActor
@@ -17,9 +19,15 @@ class COP4530_FINALPROJECT_API AGridTile : public AActor
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* StaticMeshComponent;
 
+	UPROPERTY(EditDefaultsOnly)
+	UWidgetComponent* WidgetComponent;
+
 	FTimerHandle TimerHandle;
 	
 public:
+
+	UPROPERTY(EditAnywhere, Category= "Widget")
+	TSubclassOf<UGridTileWidget> DesiredGridTile;
 	
 	AGridTile();
 
@@ -27,6 +35,8 @@ public:
 
 	void SelectTile();
 	void DeselectTile();
+	void HoverTile();
+	void DehoverTile();
 
 	FORCEINLINE AGrid* GetGrid() const { return Grid; };
 	FORCEINLINE void SetGrid(AGrid* NewGrid) { Grid = NewGrid; } 
@@ -53,6 +63,7 @@ protected:
 	void SetTile() const;
 	void SetTileColor() const;
 	void SetTileSize() const;
+	void SetTileWidget() const;
 	
 	virtual void NotifyActorBeginCursorOver() override;
 	virtual void NotifyActorEndCursorOver() override;

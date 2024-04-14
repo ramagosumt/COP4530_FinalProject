@@ -215,9 +215,42 @@ void AGrid::SpawnTiles(const bool SpawnNone)
 	}
 }
 
+int32 AGrid::CalculateTileCost(const FVector2D GridIndex)
+{
+	int32 Cost = 0;
+	
+	switch (PathfindingMap.Find(GridIndex)->GroundType)
+	{
+	case EGroundTypes::EGT_Normal:
+		Cost = 1;
+		break;
+	case EGroundTypes::EGT_Difficult:
+		Cost = 2;
+		break;
+	case EGroundTypes::EGT_ReallyDifficult:
+		Cost = 5;
+		break;
+	case EGroundTypes::EGT_Impossible:
+		Cost = 999;
+		break;
+	case EGroundTypes::EGT_None:
+		Cost = 999;
+		break;
+	}
+	
+	return Cost;
+}
+
 void AGrid::SelectNewTile(AGridTile* TileToSelect)
 {
 	if (IsValid(SelectedTile)) SelectedTile->DeselectTile();
 
 	SelectedTile = TileToSelect;
+}
+
+void AGrid::HoverNewTile(AGridTile* TileToHover)
+{
+	if (IsValid(HoveredTile)) HoveredTile->DehoverTile();
+
+	HoveredTile = TileToHover;
 }

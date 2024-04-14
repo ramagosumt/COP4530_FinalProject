@@ -1,6 +1,8 @@
 #include "Actors/GridTile.h"
 #include "Actors/Grid.h"
+#include "Components/WidgetComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "UserInterfaces/GridTileWidget.h"
 
 AGridTile::AGridTile()
 {
@@ -13,8 +15,17 @@ AGridTile::AGridTile()
 	// Create a StaticMeshComponent and attach it to RootComponent
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	StaticMeshComponent->SetupAttachment(GetRootComponent());
-	UStaticMesh* TileMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/Grid/SM_GridTile_01")).Object;
-	StaticMeshComponent->SetStaticMesh(TileMesh);
+	StaticMeshComponent->SetStaticMesh(ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/Grid/SM_GridTile_01")).Object);
+
+	// Create a WidgetComponent and attach it to RootComponent
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+	WidgetComponent->SetupAttachment(GetRootComponent());
+	WidgetComponent->SetWindowFocusable(false);
+	WidgetComponent->SetGenerateOverlapEvents(false);
+	WidgetComponent->SetCollisionProfileName(FName("NoCollision"));
+	WidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 0.1f));
+	WidgetComponent->SetRelativeRotation(FRotator(90.f, 540.f, 720.f));
+	WidgetComponent->SetWidgetClass(ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/UserInterfaces/WBP_GridTileWidget")).Class);
 }
 
 void AGridTile::BeginPlay()
@@ -28,13 +39,14 @@ void AGridTile::BeginPlay()
 void AGridTile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 }
 
 void AGridTile::SetTile() const
 {
 	SetTileColor();
 	SetTileSize();
+	SetTileWidget();
 }
 
 void AGridTile::SetTileColor() const
@@ -76,6 +88,13 @@ void AGridTile::SetTileSize() const
 	StaticMeshComponent->SetWorldScale3D(FVector(NewScale.X, NewScale.Y, 1.f));
 }
 
+void AGridTile::SetTileWidget() const
+{
+	UGridTileWidget* GridTileWidget = Cast<UGridTileWidget>(WidgetComponent->GetUserWidgetObject());
+	GridTileWidget->SetGrid(GetGrid());
+	GridTileWidget->SetGridIndex(GetGridIndex());
+}
+
 void AGridTile::SelectTile()
 {
 	SetIsSelected(true);
@@ -90,22 +109,34 @@ void AGridTile::DeselectTile()
 	SetTileColor();
 }
 
+void AGridTile::HoverTile()
+{
+	SetIsHovered(true);
+	
+	SetTileColor();
+}
+
+void AGridTile::DehoverTile()
+{
+	SetIsHovered(false);
+
+	SetTileColor();
+}
+
 void AGridTile::NotifyActorBeginCursorOver()
 {
 	Super::NotifyActorBeginCursorOver();
 
-	SetIsHovered(true);
-	
-	SetTileColor();
+	HoverTile();
+
+	Grid->HoverNewTile(this);
 }
 
 void AGridTile::NotifyActorEndCursorOver()
 {
 	Super::NotifyActorEndCursorOver();
 
-	SetIsHovered(false);
-
-	SetTileColor();
+	DehoverTile();
 }
 
 void AGridTile::NotifyActorOnClicked(FKey ButtonPressed)

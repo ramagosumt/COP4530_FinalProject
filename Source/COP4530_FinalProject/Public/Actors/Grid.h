@@ -59,6 +59,9 @@ public:
 	UPROPERTY(VisibleInstanceOnly)
 	AGridTile* SelectedTile;
 
+	UPROPERTY(VisibleInstanceOnly)
+	AGridTile* HoveredTile;
+
 	UPROPERTY(EditInstanceOnly, Category= "Debug")
 	FColor GridBoxColor;
 
@@ -71,6 +74,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void SelectNewTile(AGridTile* TileToSelect);
+	void HoverNewTile(AGridTile* TileToHover);
+	int32 CalculateTileCost(const FVector2D GridIndex);
 	
 	FORCEINLINE FVector GetGridLocation() const { return GridLocation; };
 	FORCEINLINE void SetGridLocation(const FVector NewGridLocation) { GridLocation = NewGridLocation; }
