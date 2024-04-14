@@ -36,12 +36,6 @@ void AGridTile::BeginPlay()
 	
 }
 
-void AGridTile::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-	
-}
-
 void AGridTile::SetTile() const
 {
 	SetTileColor();
@@ -51,34 +45,33 @@ void AGridTile::SetTile() const
 
 void AGridTile::SetTileColor() const
 {
-	const FPathfindingData* CurrentData = Grid->GetPathfindingMap().Find(GridIndex);
-	
 	FColor TileColor;
 	
-	switch (CurrentData->GroundType)
+	switch (Grid->GetPathfindingMap().Find(GridIndex)->GroundType)
 	{
 	case EGroundTypes::EGT_Normal:
-		TileColor = FColor::Silver;
+		TileColor = FColor::FromHex(FString("808080"));
 		break;
 	case EGroundTypes::EGT_Difficult:
 		TileColor = FColor::Turquoise;
 		break;
 	case EGroundTypes::EGT_ReallyDifficult:
-		TileColor = FColor::Orange;
+		TileColor = FColor::FromHex(FString("FF8503"));
 		break;
 	case EGroundTypes::EGT_Impossible:
-		TileColor = FColor::Purple;
+		TileColor = FColor::FromHex(FString("8B0000"));
 		break;
 	case EGroundTypes::EGT_None:
 		TileColor = FColor::Blue;
 		break;
 	}
 
+	// If selected, brighten up the tile
 	if (bIsSelected) StaticMeshComponent->SetScalarParameterValueOnMaterials(FName("bIsSelected"), 1.f);
 		else StaticMeshComponent->SetScalarParameterValueOnMaterials(FName("bIsSelected"), 0.f);
 
+	// If hovered, brighten up the tile
 	if (bIsHovered) TileColor = UKismetMathLibrary::Conv_LinearColorToColor(UKismetMathLibrary::Conv_VectorToLinearColor(3 * UKismetMathLibrary::Conv_LinearColorToVector(UKismetMathLibrary::Conv_ColorToLinearColor(TileColor))));
-
 	StaticMeshComponent->SetVectorParameterValueOnMaterials(FName("TileColor"), UKismetMathLibrary::Conv_LinearColorToVector(UKismetMathLibrary::Conv_ColorToLinearColor(TileColor)));
 }
 
@@ -98,28 +91,24 @@ void AGridTile::SetTileWidget() const
 void AGridTile::SelectTile()
 {
 	SetIsSelected(true);
-
 	SetTileColor();
 }
 
 void AGridTile::DeselectTile()
 {
 	SetIsSelected(false);
-	
 	SetTileColor();
 }
 
 void AGridTile::HoverTile()
 {
 	SetIsHovered(true);
-	
 	SetTileColor();
 }
 
 void AGridTile::DehoverTile()
 {
 	SetIsHovered(false);
-
 	SetTileColor();
 }
 
@@ -128,7 +117,6 @@ void AGridTile::NotifyActorBeginCursorOver()
 	Super::NotifyActorBeginCursorOver();
 
 	HoverTile();
-
 	Grid->HoverNewTile(this);
 }
 
@@ -144,6 +132,5 @@ void AGridTile::NotifyActorOnClicked(FKey ButtonPressed)
 	Super::NotifyActorOnClicked(ButtonPressed);
 
 	SelectTile();
-
 	Grid->SelectNewTile(this);
 }

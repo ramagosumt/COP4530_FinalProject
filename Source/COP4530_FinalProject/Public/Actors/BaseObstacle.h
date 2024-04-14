@@ -4,11 +4,9 @@
 #include "GameFramework/Actor.h"
 #include "BaseObstacle.generated.h"
 
-/** Defines */
-#define PFC_Ground ECC_GameTraceChannel1 // User-defined collision channel for Grounds
-#define PFC_Obstacle ECC_GameTraceChannel2 // User-defined collision channel for Obstacles
+#define PFC_GROUND ECC_GameTraceChannel1 // User-defined collision channel for Grounds
+#define PFC_OBSTACLE ECC_GameTraceChannel2 // User-defined collision channel for Obstacles
 
-/** Enumerations */
 UENUM()
 enum class EGroundTypes : uint8
 {
@@ -36,11 +34,5 @@ public:
 	EGroundTypes GroundType;
 	
 	ABaseObstacle();
-	
-	virtual void Tick(float DeltaTime) override;
-
-protected:
-	
-	virtual void BeginPlay() override;
 	
 };

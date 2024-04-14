@@ -63,12 +63,6 @@ void AGrid::BeginPlay()
 	SpawnTiles(true);
 }
 
-void AGrid::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 FVector AGrid::GridBottomLeft() const
 {
 	// Movement = Move Direction * Move Length
@@ -103,7 +97,7 @@ bool AGrid::TraceSphere(ETraceTypeQuery TraceType, FHitResult& HitActor) const
 {
 	const TArray<AActor*> IgnoreActors;
 	
-	return UKismetSystemLibrary::SphereTraceSingle(GetWorld(), TilePosition, TilePosition, TileSize - TileSizeOffset, TraceType, false, IgnoreActors, EDrawDebugTrace::ForDuration, HitActor, true, FLinearColor::Red, FLinearColor::Green, 20.f);
+	return UKismetSystemLibrary::SphereTraceSingle(GetWorld(), TilePosition, TilePosition, TileSize - TileSizeOffset, TraceType, false, IgnoreActors, EDrawDebugTrace::None, HitActor, true, FLinearColor::Red, FLinearColor::Green, 20.f);
 }
 
 void AGrid::DebugGroundType(EGroundTypes GroundType, FVector GroundLocation)
@@ -111,16 +105,16 @@ void AGrid::DebugGroundType(EGroundTypes GroundType, FVector GroundLocation)
 	switch (GroundType)
 	{
 	case EGroundTypes::EGT_Normal:
-		TileColor = FColor::Silver;
+		TileColor = FColor::FromHex(FString("808080"));
 		break;
 	case EGroundTypes::EGT_Difficult:
 		TileColor = FColor::Turquoise;
 		break;
 	case EGroundTypes::EGT_ReallyDifficult:
-		TileColor = FColor::Orange;
+		TileColor = FColor::FromHex(FString("FF8503"));
 		break;
 	case EGroundTypes::EGT_Impossible:
-		TileColor = FColor::Purple;
+		TileColor = FColor::FromHex(FString("8B0000"));
 		break;
 	case EGroundTypes::EGT_None:
 		TileColor = FColor::Blue;
@@ -146,11 +140,11 @@ void AGrid::GenerateMapDataFromWorld()
 
 			// Adds PFC_Ground as Traced Traces
 			TArray<TEnumAsByte<ETraceTypeQuery>> GroundTypesArray;
-			GroundTypesArray.Add(UEngineTypes::ConvertToTraceType(PFC_Ground)); // Convert the user-defined PFC_Ground collision channel to ETraceTypeQuery
+			GroundTypesArray.Add(UEngineTypes::ConvertToTraceType(PFC_GROUND)); // Convert the user-defined PFC_Ground collision channel to ETraceTypeQuery
 			
 			// Adds PFC_Obstacle as Traced Traces
 			TArray<TEnumAsByte<ETraceTypeQuery>> ObstacleTypesArray;
-			ObstacleTypesArray.Add(UEngineTypes::ConvertToTraceType(PFC_Obstacle)); // Convert the user-defined PFC_Ground collision channel to ETraceTypeQuery
+			ObstacleTypesArray.Add(UEngineTypes::ConvertToTraceType(PFC_OBSTACLE)); // Convert the user-defined PFC_Ground collision channel to ETraceTypeQuery
 
 			if (TraceSphere(GroundTypesArray[0], TraceHit))
 			{
@@ -163,6 +157,7 @@ void AGrid::GenerateMapDataFromWorld()
 					PathfindingData->GroundType = Obstacle->GroundType;
 					PathfindingData->WorldLocation = TilePosition;
 					PathfindingData->GridIndex = FVector2D(X, Y);
+					PathfindingData->TileCost = CalculateTileCost(Obstacle->GroundType);
 					
 					PathfindingMap.Add(FVector2D(X, Y), *PathfindingData);
 				}
@@ -173,6 +168,7 @@ void AGrid::GenerateMapDataFromWorld()
 					PathfindingData->GroundType = EGroundTypes::EGT_Normal;
 					PathfindingData->WorldLocation = TilePosition;
 					PathfindingData->GridIndex = FVector2D(X, Y);
+					PathfindingData->TileCost = CalculateTileCost(EGroundTypes::EGT_Normal);
 					
 					PathfindingMap.Add(FVector2D(X, Y), *PathfindingData);
 				}
@@ -184,6 +180,7 @@ void AGrid::GenerateMapDataFromWorld()
 				PathfindingData->GroundType = EGroundTypes::EGT_None;
 				PathfindingData->WorldLocation = TilePosition;
 				PathfindingData->GridIndex = FVector2D(X, Y);
+				PathfindingData->TileCost = CalculateTileCost(EGroundTypes::EGT_None);
 				
 				PathfindingMap.Add(FVector2D(X, Y), *PathfindingData);
 			}
@@ -215,11 +212,11 @@ void AGrid::SpawnTiles(const bool SpawnNone)
 	}
 }
 
-int32 AGrid::CalculateTileCost(const FVector2D GridIndex)
+int32 AGrid::CalculateTileCost(const EGroundTypes GroundType)
 {
 	int32 Cost = 0;
 	
-	switch (PathfindingMap.Find(GridIndex)->GroundType)
+	switch (GroundType)
 	{
 	case EGroundTypes::EGT_Normal:
 		Cost = 1;

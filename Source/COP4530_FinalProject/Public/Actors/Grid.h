@@ -5,9 +5,8 @@
 #include "Data/PathfindingDataStructs.h"
 #include "Grid.generated.h"
 
-/** Defines */
-#define PFC_Ground ECC_GameTraceChannel1 // User-defined collision channel for Grounds
-#define PFC_Obstacle ECC_GameTraceChannel2 // User-defined collision channel for Obstacles
+#define PFC_GROUND ECC_GameTraceChannel1
+#define PFC_OBSTACLE ECC_GameTraceChannel2
 
 enum class EGroundTypes : uint8;
 
@@ -71,11 +70,10 @@ public:
 	AGrid();
 	
 	virtual void OnConstruction(const FTransform& Transform) override;
-	virtual void Tick(float DeltaTime) override;
 
 	void SelectNewTile(AGridTile* TileToSelect);
 	void HoverNewTile(AGridTile* TileToHover);
-	int32 CalculateTileCost(const FVector2D GridIndex);
+	static int32 CalculateTileCost(const EGroundTypes GroundType);
 	
 	FORCEINLINE FVector GetGridLocation() const { return GridLocation; };
 	FORCEINLINE void SetGridLocation(const FVector NewGridLocation) { GridLocation = NewGridLocation; }

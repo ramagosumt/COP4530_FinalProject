@@ -31,8 +31,6 @@ public:
 	
 	AGridTile();
 
-	virtual void Tick(float DeltaTime) override;
-
 	void SelectTile();
 	void DeselectTile();
 	void HoverTile();

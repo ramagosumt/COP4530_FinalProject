@@ -6,7 +6,7 @@ void UGridTileWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UGridTileWidget::SetCost, 0.1f, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UGridTileWidget::SetCost, 0.03f, false);
 }
 
 void UGridTileWidget::SetCost() const
@@ -17,12 +17,13 @@ void UGridTileWidget::SetCost() const
 
 void UGridTileWidget::SetFinalCost() const
 {
-	if (IsValid(Grid)) FinalCost->SetText(FText::FromString(FString::FromInt(Grid->PathfindingMap.Find(GridIndex)->FinalCost)));
+	if (IsValid(Grid)) if (Grid->PathfindingMap.Find(GridIndex)->FinalCost != 999) FinalCost->SetText(FText::FromString(FString::FromInt(Grid->PathfindingMap.Find(GridIndex)->FinalCost)));
+			else FinalCost->SetText(FText(FText::FromString("0")));
 		else FinalCost->SetText(FText(FText::FromString("0")));
 }
 
 void UGridTileWidget::SetIndividualCost() const
 {
-	if (IsValid(Grid)) IndividualCost->SetText(FText::FromString(FString::FromInt(Grid->CalculateTileCost(GridIndex))));
+	if (IsValid(Grid)) IndividualCost->SetText(FText::FromString(FString::FromInt(Grid->PathfindingMap.Find(GridIndex)->TileCost)));
 		else IndividualCost->SetText(FText(FText::FromString("0")));
 }

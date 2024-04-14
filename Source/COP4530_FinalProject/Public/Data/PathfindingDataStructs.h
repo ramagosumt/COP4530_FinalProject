@@ -10,13 +10,22 @@
 #include "Actors/BaseObstacle.h"
 #include "PathfindingDataStructs.generated.h"
 
+class AGridTile;
+
 USTRUCT()
 struct FPathfindingData
 {
- GENERATED_BODY()
+	GENERATED_BODY()
 
- EGroundTypes GroundType;
- FVector WorldLocation;
- FVector2D GridIndex;
- int32 FinalCost;
+	UPROPERTY()
+	AGridTile* TileActor;
+	
+	EGroundTypes GroundType;
+	FVector WorldLocation;
+	FVector2D GridIndex;
+	int32 FinalCost;
+	int32 CostFromStart;
+	int32 EstimatedCostToTarget;
+	int32 TileCost;
+	FVector2D PreviousTile;
 };

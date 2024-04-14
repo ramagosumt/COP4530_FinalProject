@@ -14,21 +14,8 @@ ABaseObstacle::ABaseObstacle()
 	UStaticMesh* CubeMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("StaticMesh'/Engine/BasicShapes/Cube.Cube'")).Object;
 	StaticMeshComponent->SetStaticMesh(CubeMesh);
 	StaticMeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-	StaticMeshComponent->SetCollisionResponseToChannel(PFC_Obstacle, ECR_Block);
+	StaticMeshComponent->SetCollisionResponseToChannel(PFC_OBSTACLE, ECR_Block);
 
 	GroundType = EGroundTypes::EGT_Difficult;
 
 }
-
-void ABaseObstacle::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-void ABaseObstacle::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
