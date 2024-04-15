@@ -1,0 +1,1 @@
+"A:\UE_4.27\UE_4.27\Engine\Binaries\Win64\UE4Editor.exe" "B:\UE_4.27 Projects\COP4530_FinalProject\COP4530_FinalProject.uproject"  -game -windowed  -ResX=1280 -ResY=720 -WinX=640 -WinY=360 -NoVSync -log -SaveToUserDir
