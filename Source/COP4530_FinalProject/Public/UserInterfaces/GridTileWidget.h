@@ -39,6 +39,7 @@ public:
 protected:
 	
 	virtual void NativeOnInitialized() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	void SetCost() const;
 	void SetFinalCost() const;

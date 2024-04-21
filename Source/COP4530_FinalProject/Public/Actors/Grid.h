@@ -20,6 +20,8 @@ class COP4530_FINALPROJECT_API AGrid : public AActor
 {
 	GENERATED_BODY()
 
+	/** Actor Components */
+
 	UPROPERTY()
 	USceneComponent* SceneComponent;
 
@@ -61,6 +63,9 @@ public:
 	UPROPERTY(VisibleInstanceOnly)
 	AGridTile* HoveredTile;
 
+	UPROPERTY(VisibleInstanceOnly)
+	TArray<FVector2D> PathToTarget;
+
 	UPROPERTY(EditInstanceOnly, Category= "Debug")
 	FColor GridBoxColor;
 
@@ -71,9 +76,13 @@ public:
 	
 	virtual void OnConstruction(const FTransform& Transform) override;
 
+	/** Event Functions */
+	
 	void SelectNewTile(AGridTile* TileToSelect);
 	void HoverNewTile(AGridTile* TileToHover);
 	static int32 CalculateTileCost(const EGroundTypes GroundType);
+
+	/** Getters & Setters */
 	
 	FORCEINLINE FVector GetGridLocation() const { return GridLocation; };
 	FORCEINLINE void SetGridLocation(const FVector NewGridLocation) { GridLocation = NewGridLocation; }
@@ -86,6 +95,8 @@ protected:
 	
 	virtual void BeginPlay() override;
 
+	/** Grid Functions */
+	
 	FVector GridBottomLeft() const; // Calculate the Position of BottomLeft
 	void GridTileNumber(int32& X, int32& Y) const; // Calculate the Amount of Tiles
 	void DrawTile(); // Draw the Tiles
@@ -93,4 +104,22 @@ protected:
 	void DebugGroundType(EGroundTypes GroundType, FVector GroundLocation);
 	void GenerateMapDataFromWorld();
 	void SpawnTiles(const bool SpawnNone);
+
+	/** Pathfinding Helper Functions */
+	
+	TArray<FVector2D> GetTileNeighbors(const FVector2D GridIndex); // Get all neighbors from tile
+	static int32 GetEstimatedCostToTarget(const FVector2D CurrentIndex, const FVector2D TargetIndex); // Calculate the number of steps
+	void FindPathToTarget(const FVector2D StartIndex, const FVector2D TargetIndex);
+	TArray<FVector2D> RetracePath(const FVector2D StartIndex, const FVector2D TargetIndex);
+	void HighlightCurrentPath(const bool bIsForHighlighted);
+
+	/** Pathfinding Algorithms
+	 * Depth First Search [DFS]
+	 * Breadth First Search [BFS]
+	 * Dijkstra [Dis]
+	 * A* [As]
+	 * Greedy Best First Search [GBFS]
+	 */
+	
+	void AStar(); // Pathfinding Algorithm - A*
 };

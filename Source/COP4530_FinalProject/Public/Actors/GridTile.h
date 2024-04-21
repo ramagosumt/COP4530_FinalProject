@@ -35,6 +35,7 @@ public:
 	void DeselectTile();
 	void HoverTile();
 	void DehoverTile();
+	void IsInPath(bool bInPath);
 
 	FORCEINLINE AGrid* GetGrid() const { return Grid; };
 	FORCEINLINE void SetGrid(AGrid* NewGrid) { Grid = NewGrid; } 
@@ -55,6 +56,7 @@ protected:
 
 	bool bIsHovered;
 	bool bIsSelected;
+	bool bIsInPath;
 	
 	virtual void BeginPlay() override;
 

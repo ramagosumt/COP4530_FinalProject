@@ -9,6 +9,15 @@ void UGridTileWidget::NativeOnInitialized()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UGridTileWidget::SetCost, 0.03f, false);
 }
 
+void UGridTileWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	if (IsValid(Grid)) if (Grid->PathfindingMap.Find(GridIndex)->CostFromStart != 999) FinalCost->SetText(FText::FromString(FString::FromInt(Grid->PathfindingMap.Find(GridIndex)->CostFromStart)));
+			else FinalCost->SetText(FText(FText::FromString("X")));
+		else FinalCost->SetText(FText(FText::FromString("0")));
+}
+
 void UGridTileWidget::SetCost() const
 {
 	SetFinalCost();
