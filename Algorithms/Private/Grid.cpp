@@ -32,21 +32,20 @@ bool Grid::IsValid(int X,int Y)
     if (X < 0 || X >= N || Y < 0 || Y >= M) return false;
     // check whether the cell is a wall or has been visited before
     if (G[X][Y].Col=='W' || G[X][Y].Visit == true) return false;
+    
     return true;
 }
 
 
 bool Grid::IsValidToRelax(int X, int Y, Node* Curr)
 {
-    // if(x<0)return false;
-    // if(x>=N) return false;
-    // if(y<0)return false;
-    // if(y>=M)return false;
-    // if(G[x][y].col=='W') return false;
+    // check if the cell has proper coordinates or is a wall
+    if (X < 0 || X >= N || Y < 0 || Y >= M || G[X][Y].Col=='W') return false;
 
-    if (IsValid(X, Y)){
-        if(G[X][Y].Dist <= Curr->Dist+1) return false;
-    } else return true;
+    // check the distance
+    if (G[X][Y].Dist <= Curr->Dist + 1) return false;
+
+    return true;
 }
 
 
