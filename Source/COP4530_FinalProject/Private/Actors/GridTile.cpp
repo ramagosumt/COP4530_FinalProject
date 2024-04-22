@@ -121,6 +121,16 @@ void AGridTile::IsInPath(bool bInPath)
 	SetTileColor();
 }
 
+void AGridTile::DebugOpenSet() const
+{
+	StaticMeshComponent->SetVectorParameterValueOnMaterials(FName("TileColor"), UKismetMathLibrary::Conv_LinearColorToVector(UKismetMathLibrary::Conv_ColorToLinearColor(FColor::Cyan)));
+}
+
+void AGridTile::DebugClosedSet() const
+{
+	StaticMeshComponent->SetVectorParameterValueOnMaterials(FName("TileColor"), UKismetMathLibrary::Conv_LinearColorToVector(UKismetMathLibrary::Conv_ColorToLinearColor(FColor::Blue)));
+}
+
 void AGridTile::NotifyActorBeginCursorOver()
 {
 	Super::NotifyActorBeginCursorOver();

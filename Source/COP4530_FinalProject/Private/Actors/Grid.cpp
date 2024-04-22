@@ -306,6 +306,7 @@ void AGrid::FindPathToTarget(const FVector2D StartIndex, const FVector2D TargetI
 				NewCurrentData->CostFromStart = 999.f;
 				NewCurrentData->EstimatedCostToTarget = 999.f;
 				NewCurrentData->PreviousTile = FVector2D(0.f, 0.f);
+				NewCurrentData->TileActor->SetTileColor();
 		
 				PathfindingMap.Add(K, *NewCurrentData);
 			}
@@ -325,6 +326,7 @@ void AGrid::FindPathToTarget(const FVector2D StartIndex, const FVector2D TargetI
 			FVector2D CurrentTile = StartTile;
 
 			OpenSet.AddUnique(CurrentTile);
+			PathfindingMap.Find(CurrentTile)->TileActor->DebugOpenSet();
 
 			while (OpenSet.Num() > 0)
 			{
@@ -342,6 +344,7 @@ void AGrid::FindPathToTarget(const FVector2D StartIndex, const FVector2D TargetI
 				CurrentTile = CheapestTile;
 				OpenSet.Remove(CurrentTile);
 				ClosedSet.AddUnique(CurrentTile);
+				PathfindingMap.Find(CurrentTile)->TileActor->DebugClosedSet();
 
 				TArray<FVector2D> CurrentNeighbors = GetTileNeighbors(CurrentTile);
 				for (const FVector2D Neighbor : CurrentNeighbors)
@@ -353,6 +356,7 @@ void AGrid::FindPathToTarget(const FVector2D StartIndex, const FVector2D TargetI
 						if (!OpenSet.Contains(CurrentNeighbor))
 						{
 							OpenSet.AddUnique(CurrentNeighbor);
+							PathfindingMap.Find(CurrentNeighbor)->TileActor->DebugOpenSet();
 
 							FPathfindingData* CurrentNeighborData = PathfindingMap.Find(CurrentNeighbor);
 							FPathfindingData* NewCurrentNeighborData = CurrentNeighborData;

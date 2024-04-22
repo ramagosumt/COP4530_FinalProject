@@ -31,11 +31,14 @@ public:
 	
 	AGridTile();
 
+	void SetTileColor() const;
 	void SelectTile();
 	void DeselectTile();
 	void HoverTile();
 	void DehoverTile();
 	void IsInPath(bool bInPath);
+	void DebugOpenSet() const;
+	void DebugClosedSet() const;
 
 	FORCEINLINE AGrid* GetGrid() const { return Grid; };
 	FORCEINLINE void SetGrid(AGrid* NewGrid) { Grid = NewGrid; } 
@@ -61,7 +64,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	void SetTile() const;
-	void SetTileColor() const;
 	void SetTileSize() const;
 	void SetTileWidget() const;
 	
