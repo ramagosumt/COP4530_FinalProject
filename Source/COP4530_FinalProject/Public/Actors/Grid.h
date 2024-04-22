@@ -114,12 +114,13 @@ protected:
 	void HighlightCurrentPath(const bool bIsForHighlighted);
 
 	/** Pathfinding Algorithms
-	 * Depth First Search [DFS]
-	 * Breadth First Search [BFS]
+	 * Depth-First-Search [DFS]
+	 * Breadth-First-Search [BFS]
 	 * Dijkstra [Dis]
 	 * A* [As]
-	 * Greedy Best First Search [GBFS]
+	 * Greedy Best-First-Search [GBFS]
 	 */
-	
+
+	void DepthFirstSearch(const FVector2D StartIndex); // Pathfinding Algorithm - Depth-First-Search
 	void AStar(); // Pathfinding Algorithm - A*
 };

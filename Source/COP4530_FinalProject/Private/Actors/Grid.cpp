@@ -257,7 +257,7 @@ void AGrid::HoverNewTile(AGridTile* TileToHover)
 
 	if (IsValid(SelectedTile) && IsValid(HoveredTile))
 	{
-		FindPathToTarget(SelectedTile->GetGridIndex(), HoveredTile->GetGridIndex());
+		DepthFirstSearch(SelectedTile->GetGridIndex());
 		HighlightCurrentPath(true);
 	}
 }
@@ -426,6 +426,44 @@ void AGrid::HighlightCurrentPath(const bool bIsForHighlighted)
 		if (IsValid(PathfindingMap.Find(P)->TileActor))
 		{
 			PathfindingMap.Find(P)->TileActor->IsInPath(bIsForHighlighted);
+		}
+	}
+}
+
+void AGrid::DepthFirstSearch(const FVector2D StartIndex)
+{
+	TArray<FVector2D> Stack;
+	Stack.Add(StartIndex);
+
+	while (Stack.Num() > 0)
+	{
+		const FVector2D CurrentTile = Stack.Pop();
+		FPathfindingData* CurrentTileData = PathfindingMap.Find(CurrentTile);
+		CurrentTileData->bVisited = true;
+
+		if (CurrentTileData)
+		{
+			if (CurrentTileData->GridIndex == HoveredTile->GetGridIndex())
+			{
+				PathToTarget = RetracePath(StartIndex, HoveredTile->GetGridIndex());
+		
+				return;
+			}
+		}
+
+		TArray<FVector2D> PossibleNeighbors = GetTileNeighbors(CurrentTile);
+		for (const FVector2D Neighbor : PossibleNeighbors)
+		{
+			const FVector2D CurrentNeighbor = Neighbor;
+			FPathfindingData* CurrentNeighborData = PathfindingMap.Find(CurrentNeighbor);
+			if (CurrentNeighborData)
+			{
+				if (CurrentNeighborData->bVisited != true)
+				{
+					CurrentNeighborData->PreviousTile = CurrentTile;
+					Stack.Add(CurrentNeighbor);
+				}
+			}
 		}
 	}
 }

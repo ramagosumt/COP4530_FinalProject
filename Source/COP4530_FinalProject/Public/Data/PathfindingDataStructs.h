@@ -28,4 +28,6 @@ struct FPathfindingData
 	int32 EstimatedCostToTarget;
 	int32 TileCost;
 	FVector2D PreviousTile;
+
+	bool bVisited;
 };
