@@ -124,7 +124,7 @@ void Grid::DFS(Node* Curr)
     DFSExploreNeighbor(Curr, Curr->X - 1, Curr->Y);
     DFSExploreNeighbor(Curr, Curr->X, Curr->Y - 1);
     DFSExploreNeighbor(Curr, Curr->X + 1, Curr->Y);
-    DFSExploreNeighbor(Curr, Curr->X, Curr->Y - 1);
+    DFSExploreNeighbor(Curr, Curr->X, Curr->Y + 1);
 
     // Mark the current node as not visited
     Curr->Visit = false;
@@ -189,6 +189,7 @@ void Grid::BFS(Node* Curr)
         BFSExploreNeighbor(Current, Current->X, Current->Y + 1, SearchQueue);
     }
 }
+
 
 void Grid::AS(Node* Source, Node* Destination)
 {
@@ -257,6 +258,13 @@ void Grid::Dijkstra(Node* Source)
     // Initialize priority queue to store nodes based on their distances
     priority_queue<Node*, vector<Node*>, CompareDijkstra> PriorityQueue;
     
+    // Initialize distances of all nodes to infinity
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < M; ++j) {
+            G[i][j].Dist = INT_MAX;
+        }
+    }
+
     // Set the distances of source node to 0
     Source->Dist = 0;
     PriorityQueue.push(Source);
@@ -293,13 +301,9 @@ void Grid::DijExploreNeighbor(Node* Current, int X, int Y, priority_queue<Node*,
         // Calculate the new distance from the source to the neighbor node
         int NewDistance = Current->Dist + 1;
 
-        // If the new distance is shorter than the current distance to the neighbor node
-        if (NewDistance < Neighbor->Dist)
-        {   
-            //  Update the shortest path information for the neighbor node
-            Neighbor->Prev = Current;
-            Neighbor->Dist = NewDistance;
-            PriorityQueue.push(Neighbor); // Push the neighbor node into the priority queue for further exploration
-        }
+        //  Update the shortest path information for the neighbor node
+        Neighbor->Prev = Current;
+        Neighbor->Dist = NewDistance;
+        PriorityQueue.push(Neighbor); // Push the neighbor node into the priority queue for further exploration
     }
 }

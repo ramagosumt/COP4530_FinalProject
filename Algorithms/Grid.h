@@ -7,6 +7,7 @@
 #include <queue>
 #include <stack>
 #include <algorithm>
+#include <climits>
 #include "Node.h"
 using namespace std;
 

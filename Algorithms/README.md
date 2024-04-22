@@ -2,12 +2,15 @@
 
 ## COMMAND LINE INTERFACE FOR PATH FINDING ALGORITHMS IN ROBOT NAVIGATION
 
-Implementation of tree based search algorithm so that robot can find a path to any of the goals, agorithms used are **_Depth First Search, Breadth First Search, Astar and Djikstra's_**, to create an executable do,
+Graph Search algorithms, **_Depth First Search, Breadth First Search, Astar and Djikstra's_**, that allow robots to travel to their goal states
+
+To create an executable, please run this command in terminal
 ```bash
 make all
 ```
-To run the program do,
+To run the actual program, please run this command
 ```bash
-./main <testfilename> <Algorithm Name>
+./main <Testfile Name> <Algorithm Name>
 ```
-where Algorithm name can take values DFS , BFS ,AS or Dijkstra. Refer to our report for more details.
+where "Algorithm Name" refers to one of these keywords: **_DFS , BFS , AS or Dijkstra_**
+      "Testfile Name" refers to the **_text file_** that contains number of rows & columns as well as coordinates of source node, goal nodes, amd walls
