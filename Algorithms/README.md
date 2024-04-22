@@ -1,6 +1,6 @@
-# COS30019 Introduction to AI
+# COP4530 FINAL PROJECT
 
-## Assignment 1 Robot Navigation Problem
+## COMMAND LINE INTERFACE FOR PATH FINDING ALGORITHMS IN ROBOT NAVIGATION
 
 Implementation of tree based search algorithm so that robot can find a path to any of the goals, agorithms used are **_Depth First Search, Breadth First Search, Astar and Djikstra's_**, to create an executable do,
 ```bash
