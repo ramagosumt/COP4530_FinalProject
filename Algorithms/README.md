@@ -10,7 +10,6 @@ make all
 ```
 To run the actual program, please run this command
 ```bash
-./main <Testfile Name> <Algorithm Name>
+./main testfile.txt <Algorithm Name>
 ```
 where "Algorithm Name" refers to one of these keywords: **_DFS , BFS , AS or Dijkstra_**
-      "Testfile Name" refers to the **_text file_** that contains number of rows & columns as well as coordinates of source node, goal nodes, amd walls
