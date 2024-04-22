@@ -157,6 +157,9 @@ void AGrid::GenerateMapDataFromWorld()
 					PathfindingData->GroundType = Obstacle->GroundType;
 					PathfindingData->WorldLocation = TilePosition;
 					PathfindingData->GridIndex = FVector2D(X, Y);
+					PathfindingData->FinalCost = 999.f;
+					PathfindingData->EstimatedCostToTarget = 999.f;
+					PathfindingData->CostFromStart = 999.f;
 					PathfindingData->TileCost = CalculateTileCost(Obstacle->GroundType);
 					
 					PathfindingMap.Add(FVector2D(X, Y), *PathfindingData);
@@ -168,6 +171,9 @@ void AGrid::GenerateMapDataFromWorld()
 					PathfindingData->GroundType = EGroundTypes::EGT_Normal;
 					PathfindingData->WorldLocation = TilePosition;
 					PathfindingData->GridIndex = FVector2D(X, Y);
+					PathfindingData->FinalCost = 999.f;
+					PathfindingData->EstimatedCostToTarget = 999.f;
+					PathfindingData->CostFromStart = 999.f;
 					PathfindingData->TileCost = CalculateTileCost(EGroundTypes::EGT_Normal);
 					
 					PathfindingMap.Add(FVector2D(X, Y), *PathfindingData);
@@ -180,6 +186,9 @@ void AGrid::GenerateMapDataFromWorld()
 				PathfindingData->GroundType = EGroundTypes::EGT_None;
 				PathfindingData->WorldLocation = TilePosition;
 				PathfindingData->GridIndex = FVector2D(X, Y);
+				PathfindingData->FinalCost = 999.f;
+				PathfindingData->EstimatedCostToTarget = 999.f;
+				PathfindingData->CostFromStart = 999.f;
 				PathfindingData->TileCost = CalculateTileCost(EGroundTypes::EGT_None);
 				
 				PathfindingMap.Add(FVector2D(X, Y), *PathfindingData);
@@ -257,7 +266,7 @@ void AGrid::HoverNewTile(AGridTile* TileToHover)
 
 	if (IsValid(SelectedTile) && IsValid(HoveredTile))
 	{
-		DepthFirstSearch(SelectedTile->GetGridIndex());
+		BreadthFirstSearch(SelectedTile->GetGridIndex());
 		HighlightCurrentPath(true);
 	}
 }
@@ -435,6 +444,36 @@ void AGrid::DepthFirstSearch(const FVector2D StartIndex)
 	TArray<FVector2D> Stack;
 	Stack.Add(StartIndex);
 
+	// Clear the last path
+	PathToTarget.Empty();
+
+	// Reset pathfinding data for all tiles
+	TArray<FVector2D> Keys;
+	PathfindingMap.GetKeys(Keys);
+
+	const FPathfindingData* HoveredTileData = PathfindingMap.Find(HoveredTile->GetGridIndex());
+	
+	if (HoveredTileData && HoveredTileData->GroundType != EGroundTypes::EGT_None && HoveredTileData->GroundType != EGroundTypes::EGT_Impossible)
+	{
+		for (const FVector2D K : Keys)
+		{
+			FPathfindingData* CurrentData = PathfindingMap.Find(K);
+			if (CurrentData)
+			{
+				CurrentData->PreviousTile = FVector2D(0.f, 0.f);
+				CurrentData->bVisited = false;
+			}
+		}
+	}
+	
+	// Mark the starting tile as visited
+	FPathfindingData* StartIndexData = PathfindingMap.Find(StartIndex);
+	if (StartIndexData)
+	{
+		StartIndexData->PreviousTile = FVector2D(0.f, 0.f);
+		StartIndexData->bVisited = false;
+	}
+
 	while (Stack.Num() > 0)
 	{
 		const FVector2D CurrentTile = Stack.Pop();
@@ -463,6 +502,80 @@ void AGrid::DepthFirstSearch(const FVector2D StartIndex)
 					CurrentNeighborData->PreviousTile = CurrentTile;
 					Stack.Add(CurrentNeighbor);
 				}
+			}
+		}
+	}
+}
+
+/**
+ * Performs a breadth-first search starting from the given tile index.
+ * @param StartIndex The index of the tile to start the search from.
+ */
+
+void AGrid::BreadthFirstSearch(const FVector2D StartIndex)
+{
+	// Create a queue to store visited tiles
+	TQueue<FVector2D> VisitedTiles;
+	VisitedTiles.Enqueue(StartIndex);
+
+	// Clear the last path
+	PathToTarget.Empty();
+
+	// Reset pathfinding data for all tiles
+	TArray<FVector2D> Keys;
+	PathfindingMap.GetKeys(Keys);
+
+	const FPathfindingData* HoveredTileData = PathfindingMap.Find(HoveredTile->GetGridIndex());
+	
+	if (HoveredTileData && HoveredTileData->GroundType != EGroundTypes::EGT_None && HoveredTileData->GroundType != EGroundTypes::EGT_Impossible)
+	{
+		for (const FVector2D K : Keys)
+		{
+			FPathfindingData* CurrentData = PathfindingMap.Find(K);
+			if (CurrentData)
+			{
+				CurrentData->PreviousTile = FVector2D(0.f, 0.f);
+				CurrentData->bVisited = false;
+			}
+		}
+	}
+	
+	// Mark the starting tile as visited
+	FPathfindingData* StartIndexData = PathfindingMap.Find(StartIndex);
+	if (StartIndexData)
+	{
+		StartIndexData->PreviousTile = FVector2D(0.f, 0.f);
+		StartIndexData->bVisited = false;
+	}
+
+	// Run breadth-first search
+	while (!VisitedTiles.IsEmpty())
+	{
+		// Initialize the current tile with the head of the queue, then dequeue it
+		FVector2D CurrentTile;
+		VisitedTiles.Dequeue(CurrentTile);
+
+		// Check if the current tile is the target tile
+		const FPathfindingData* CurrentTileData = PathfindingMap.Find(CurrentTile);
+		if (CurrentTileData->GridIndex == HoveredTile->GetGridIndex())
+		{
+			PathToTarget = RetracePath(StartIndex, HoveredTile->GetGridIndex());
+			for (const FVector2D P : PathToTarget) PathfindingMap.Find(P)->bVisited = false;
+			return;
+		}
+
+		// Get possible neighboring tiles from the current tile
+		TArray<FVector2D> PossibleNeighbors = GetTileNeighbors(CurrentTile);
+		for (const FVector2D Neighbor : PossibleNeighbors)
+		{
+			// Check if the neighbor is valid and not visited;
+			FPathfindingData* NeighborData = PathfindingMap.Find(Neighbor);
+			if (NeighborData && !NeighborData->bVisited)
+			{
+				// Mark the neighbor as visited, set its previous tile, and enqueue it
+				NeighborData->PreviousTile = CurrentTile;
+				NeighborData->bVisited = true;
+				VisitedTiles.Enqueue(Neighbor);
 			}
 		}
 	}

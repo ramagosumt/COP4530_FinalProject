@@ -26,7 +26,7 @@ void UGridTileWidget::SetCost() const
 
 void UGridTileWidget::SetFinalCost() const
 {
-	if (IsValid(Grid)) if (Grid->PathfindingMap.Find(GridIndex)->FinalCost != 999) FinalCost->SetText(FText::FromString(FString::FromInt(Grid->PathfindingMap.Find(GridIndex)->FinalCost)));
+	if (IsValid(Grid)) if (Grid->PathfindingMap.Find(GridIndex)->FinalCost != 999.f) FinalCost->SetText(FText::FromString(FString::FromInt(Grid->PathfindingMap.Find(GridIndex)->FinalCost)));
 			else FinalCost->SetText(FText(FText::FromString("0")));
 		else FinalCost->SetText(FText(FText::FromString("0")));
 }
@@ -34,5 +34,5 @@ void UGridTileWidget::SetFinalCost() const
 void UGridTileWidget::SetIndividualCost() const
 {
 	if (IsValid(Grid)) IndividualCost->SetText(FText::FromString(FString::FromInt(Grid->PathfindingMap.Find(GridIndex)->TileCost)));
-		else IndividualCost->SetText(FText(FText::FromString("0")));
+		else IndividualCost->SetText(FText(FText::FromString(" ")));
 }
