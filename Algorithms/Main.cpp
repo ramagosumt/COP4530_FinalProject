@@ -36,8 +36,8 @@ int main(int argc, char* argv[])
         cout << "Breadth First Search\n";
         GD->BFS(&(GD->Start));
     }
-    else if (METHOD == "DIJKSTRA") {
-        cout << "Dijkstra’s Algorithm\n";
+    else if (METHOD == "Dijkstra") {
+        cout << "Dijkstra Algorithm\n";
         GD->Dijkstra(&(GD->Start));
         for (int i = 0; i < GD->Goals.size(); i++)
         {
