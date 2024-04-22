@@ -6,41 +6,36 @@
  * @param len length of the line to be parsed
  * @return integer vector storing all the numbers in the line.
 */
-vector<int> ParseLine(char* Line, int Len)
+vector <int> ParseLine(char* Line,int Len)
 {
-    vector<int> Numbers;    // a list of extracted numbers from each line
-    int i = 0;    // index for iterating over the whole line 
+    // a vector of all numerical values within a line of the text file
+    vector<int> Numbers;
+    int i = 0;
+    int Sum = 0;  // each numerical value within a line
+    bool Start = false;
 
     while(i < Len)    //loop till the line is not finished
     {
-
-        int Num = 0;  // Each number in the list
-        bool Start = false; // A flag indicating this is the start of a number
-
-
-        while (i < Len && Line[i]>='0' && Line[i]<='9')    // Calculate the number
+        if(Line[i]>='0' && Line[i]<='9')    // check if the character is a digit 
         {
-            if(!Start) Start = true;
-            // Caculate the numerical value of each character-based number by accumulating its respective digits
-            Num *= 10;
-            Num += Line[i]-'0';
-            i++;    // Moving onto the next character
+            if(!Start) Start = true;        // a flag indicating this is a number
+            Sum *= 10;                      // i.e. 13 = (0*10 + (1)) * 10 + (3) 
+            Sum += Line[i]-'0';
         }
 
-        // Add the number to the list
-        if (Start){
-            Numbers.push_back(Num);
-            Start = false; Num = 0;
+        if(!(Line[i]>='0' && Line[i]<='9') && Start) //if character is not a number then ignore 
+        {
+            Numbers.push_back(Sum);
+            Start = false;
+            Sum = 0;    // reset for the next available numerical value
         }
 
-        // Ignore any non-digit character
-        while (!(Line[i]>='0' && Line[i]<='9') && Start){
-            if (Line[i] == '\n') break; // Move to the next line if it reaches the end of line
-            i++;    // Otherwise, move to the next character
-        } 
+        if(Line[i]=='\n')break;     // finish parsing one line and move to the next one
+
+        i++;    // move onto the next character
     }
     
-    return Numbers;
+    return Numbers; 
 }
 
 /**

@@ -2,15 +2,17 @@
 
 Grid::Grid(int A,int B)
 {
-    N = A;
-    M = B;
-    G = new Node*[N];
+    N = A;  // Assign the number of rows
+    M = B;  // Assign the number of columns
+    G = new Node*[N];   // Allocate memory for the grid
+    
     // intialize grid with default values
     for(int i = 0; i < N; ++i){
-        G[i] = new Node[M];
+        G[i] = new Node[M];     // Allocate memory for each row
+        // Initialize each Node in the row
         for(int j = 0; j < M; ++j) {
-            G[i][j].X=i;
-            G[i][j].Y=j;
+            G[i][j].X=i;    // Set X coordinates
+            G[i][j].Y=j;    // Set Y coordinates
         }
     }   
 }
@@ -18,10 +20,12 @@ Grid::Grid(int A,int B)
 
 void Grid::PrintGraph()
 {
+    // Iterate over each row in the grid
     for(int i=0 ;i<N ;i++)
     {
-        for(int j=0 ;j<M;j++)cout<<G[i][j].Col<<" ";
-        cout<<endl;
+        // Iterate over each column in the row
+        for(int j=0 ;j<M;j++)cout<<G[i][j].Col<<" "; // Print the label attribute of the Node
+        cout<<endl;     // Move to the next line after printing each row
     }
 }
 
@@ -65,9 +69,13 @@ void Grid::ResetVisit(){
 
 int Grid::Cost(Node* Src, Node* Dest)
 {
+    // Retrieve coordinates of source node
     int Src_XCoord = Src->X; int Src_YCoord = Src->Y;
+
+    // Retrieve coordinates of goal node
     int Dest_XCoord = Dest->X; int Dest_YCoord = Dest->Y;
 
+    // Estimate the final distance between source node and goal node
     return abs(Src_XCoord - Dest_XCoord) + abs(Src_YCoord - Dest_YCoord);
 }
 
@@ -75,17 +83,24 @@ int Grid::Cost(Node* Src, Node* Dest)
 void Grid::PrintPath(Node* Tail, stringstream& SS)
 {
     if(Tail->Prev == nullptr) return; 
+    
+    // Recursive call to print the path up to the previous node of Tail
     PrintPath(Tail->Prev, SS);
+
+    // Calculate the differences in X and Y coordinates between the current node and its previous node
     int dx = Tail->Prev->X - Tail->X ;
     int dy = Tail->Prev->Y - Tail->Y ;
 
+    // If the previous node of Tail is the source node, print its coordinates
     if(Tail->Prev->Col=='R') SS << "Start : ( "<<Tail->Prev->X<<", "<<Tail->Prev->Y<<")\t ";
     
+    // Determine the direction of movement based on the differences in coordinates and append it to SS
     if(dx == -1) SS << "down; ";
     else if(dx == 1) SS <<"up; ";
     else if (dy == 1) SS << "left; ";
     else if (dy == -1) SS << "right; ";
 
+    // If the current node is a goal node, print its coordinates
     if(Tail->Col=='G') SS << "Goal : ( " << Tail->X <<", " << Tail->Y <<") ";
 }
 
@@ -174,69 +189,6 @@ void Grid::BFS(Node* Curr)
         BFSExploreNeighbor(Current, Current->X, Current->Y + 1, SearchQueue);
     }
 }
-/**
- * Greedy Best First Search Algorithm
- * Uses Priority queue to find the node with smallest cost value/shortest distance to destination and traverses it
- * Prints out the path to destination
- * @param src source node
- * @param dest destination node
- * Disadvantages: Smallest cost value may not be efficient everytime.
- * Advantage: Better efficiency than BFS and DFS same memory usage as BFS
-*/
-// void Grid::GBFS(Node* src, Node* dest)
-// {
-//     priority_queue<Node*, vector<Node*>, compare > pq;
-//     src->cost = cost(src,dest);
-//     pq.push(src);
-//     src->visit =true;
-    
- 
-//     while (!pq.empty()) {
-//         Node* temp = pq.top();
-//         pq.pop();
-        
-//         if(temp->x==dest->x && temp->y == dest->y)
-//         {
-//             stringstream path;
-//             print_path(temp,path);
-//             cout<<path.str()<<endl;
-//             break;
-//         }
-//         int tx=temp->x;
-//         int ty=temp->y;
-
-//         if(is_Valid(tx-1,ty))
-//         {
-//             G[tx-1][ty].prev = temp;
-//             G[tx-1][ty].cost = cost(&G[tx-1][ty],dest);
-//             G[tx-1][ty].visit = true;
-//             pq.push(&G[tx-1][ty]);
-//         }
-//         if(is_Valid(tx,ty-1))
-//         {
-//             G[tx][ty-1].prev = temp;
-//             G[tx][ty-1].cost = cost(&G[tx][ty-1],dest);
-//             G[tx][ty-1].visit = true;
-//             pq.push(&G[tx][ty-1]);
-//         }
-//         if(is_Valid(tx+1,ty))
-//         {
-//             G[tx+1][ty].prev = temp;
-//             G[tx+1][ty].cost = cost(&G[tx+1][ty],dest);
-//             G[tx+1][ty].visit = true;
-//             pq.push(&G[tx+1][ty]);
-//         }
-//         if(is_Valid(tx,ty+1))
-//         {
-//             G[tx][ty+1].prev = temp;
-//             G[tx][ty+1].cost = cost(&G[tx][ty+1],dest);
-//             G[tx][ty+1].visit = true;
-//             pq.push(&G[tx][ty+1]);
-//         }
-//     }    
-// }
-
-
 
 void Grid::AS(Node* Source, Node* Destination)
 {
@@ -351,42 +303,3 @@ void Grid::DijExploreNeighbor(Node* Current, int X, int Y, priority_queue<Node*,
         }
     }
 }
-/**
- * Source to all goals with shortest path
- * Naive algorithm, poor running time
- * But paths are efficient
-*/
-// void Grid::CUS2(Node * src)
-// {    
-//     stringstream path;
-//     int goal_count = 0;
-    
-//     while(goal_count < Goals.size())
-//     {
-//         Grid::CUS1(src);
-//         int MIN =-1;
-//         unsigned int dt = -1;
-
-//         for(int i=0;i<Goals.size();i++)
-//         {
-//             if(Goals[i].visit == true ) continue;
-
-//             if(G[Goals[i].x][Goals[i].y].dist < dt)
-//             {
-//                 MIN = i;
-//                 dt = G[Goals[i].x][Goals[i].y].dist;
-//             }
-//         }
-        
-//         Goals[MIN].visit = true;
-//         int gx = Goals[MIN].x;
-//         int gy = Goals[MIN].y;
-//         goal_count++;
-
-//         print_path(&G[gx][gy],path);
-
-//         src = &G[gx][gy];
-//         reset_visit();
-//     }
-//     cout<<path.str()<<endl;
-// }
