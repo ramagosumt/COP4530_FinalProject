@@ -13,8 +13,8 @@ void UGridTileWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	if (IsValid(Grid)) if (Grid->PathfindingMap.Find(GridIndex)->CostFromStart != 999) FinalCost->SetText(FText::FromString(FString::FromInt(Grid->PathfindingMap.Find(GridIndex)->CostFromStart)));
-			else FinalCost->SetText(FText(FText::FromString("X")));
+	if (IsValid(Grid)) if (Grid->PathfindingMap.Find(GridIndex)->CostFromStart != 999.f) FinalCost->SetText(FText::FromString(FString::FromInt(Grid->PathfindingMap.Find(GridIndex)->CostFromStart)));
+			else FinalCost->SetText(FText(FText::FromString(" ")));
 		else FinalCost->SetText(FText(FText::FromString("0")));
 }
 

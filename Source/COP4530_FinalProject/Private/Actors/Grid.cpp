@@ -363,7 +363,12 @@ void AGrid::FindPathToTarget(const FVector2D StartIndex, const FVector2D TargetI
 								
 							PathfindingMap.Add(CurrentNeighbor, *NewCurrentNeighborData);
 
-							if (CurrentNeighbor == TargetTile) PathToTarget = RetracePath(StartTile, TargetTile);
+							if (CurrentNeighbor == TargetTile)
+							{
+								PathToTarget = RetracePath(StartTile, TargetTile);
+
+								return;
+							}
 						}
 						else
 						{
@@ -378,7 +383,12 @@ void AGrid::FindPathToTarget(const FVector2D StartIndex, const FVector2D TargetI
 								
 								PathfindingMap.Add(CurrentNeighbor, *NewCurrentNeighborData);
 
-								if (CurrentNeighbor == TargetTile) PathToTarget = RetracePath(StartTile, TargetTile);
+								if (CurrentNeighbor == TargetTile)
+								{
+									PathToTarget = RetracePath(StartTile, TargetTile);
+
+									return;
+								}
 							}
 						}
 					}
