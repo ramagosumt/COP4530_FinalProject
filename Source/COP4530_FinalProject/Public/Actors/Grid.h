@@ -10,8 +10,20 @@
 
 enum class EGroundTypes : uint8;
 
+UENUM()
+enum class EGameMode : uint8
+{
+	EGM_DFS UMETA(DisplayName = "DFS"),
+	EGM_BFS UMETA(DisplayName= "BFS"),
+	EGM_Djikstra UMETA(DisplayName= "Djikstra"),
+	EGM_AStar UMETA(DisplayName= "AStar"),
+	EGM_None UMETA(DisplayName= "None")
+};
+
 class UBillboardComponent;
 class AGridTile;
+class UAlgorithmsSelectionWidget;
+class UGridTileTooltipWidget;
 
 struct FPathfindingData;
 
@@ -27,6 +39,9 @@ class COP4530_FINALPROJECT_API AGrid : public AActor
 
 	UPROPERTY(EditDefaultsOnly)
 	UBillboardComponent* BillboardComponent;
+
+	UPROPERTY()
+	UGridTileTooltipWidget* GridTileTooltipWidget;
 	
 public:
 
@@ -66,6 +81,14 @@ public:
 	UPROPERTY(VisibleInstanceOnly)
 	TArray<FVector2D> PathToTarget;
 
+	EGameMode GameMode;
+
+	UPROPERTY(VisibleInstanceOnly)
+	TSubclassOf<UUserWidget> SelectionWidget;
+
+	UPROPERTY(VisibleInstanceOnly)
+	TSubclassOf<UUserWidget> TooltipWidget;
+
 	UPROPERTY(EditInstanceOnly, Category= "Debug")
 	FColor GridBoxColor;
 
@@ -81,6 +104,7 @@ public:
 	void SelectNewTile(AGridTile* TileToSelect);
 	void HoverNewTile(AGridTile* TileToHover);
 	static int32 CalculateTileCost(const EGroundTypes GroundType);
+	void ResetGrid();
 
 	/** Getters & Setters */
 	
@@ -89,7 +113,10 @@ public:
 	FORCEINLINE float GetTileSize() const { return TileSize; };
 	FORCEINLINE void SetTileSize(const float NewTileSize) { TileSize = NewTileSize; }
 	FORCEINLINE TMap<FVector2D, FPathfindingData> GetPathfindingMap() const { return PathfindingMap; };
-	FORCEINLINE void SetPathfindingMap(const TMap<FVector2D, FPathfindingData>& NewPathfindingMap) { PathfindingMap = NewPathfindingMap; } 
+	FORCEINLINE void SetPathfindingMap(const TMap<FVector2D, FPathfindingData>& NewPathfindingMap) { PathfindingMap = NewPathfindingMap; }
+	
+	FORCEINLINE UGridTileTooltipWidget* GetGridTileTooltipWidget() const { return GridTileTooltipWidget; };
+	FORCEINLINE void SetGridTileTooltipWidget(UGridTileTooltipWidget* NewGridTileTooltipWidget) { GridTileTooltipWidget = NewGridTileTooltipWidget; }
 
 protected:
 	
@@ -105,6 +132,8 @@ protected:
 	void GenerateMapDataFromWorld();
 	void SpawnTiles(const bool SpawnNone);
 
+	void SetSelectionWidget();
+
 	/** Pathfinding Helper Functions */
 	
 	TArray<FVector2D> GetTileNeighbors(const FVector2D GridIndex); // Get all neighbors from tile
@@ -116,12 +145,13 @@ protected:
 	/** Pathfinding Algorithms
 	 * Depth-First Search [DFS]
 	 * Breadth-First Search [BFS]
-	 * Dijkstra [Dis]
+	 * Dijkstra's [Dis]
 	 * A* [As]
 	 * Greedy Best-First Search [GBFS]
 	 */
 
 	void DepthFirstSearch(const FVector2D StartIndex); // Pathfinding Algorithm - Depth-First Search
-	void BreadthFirstSearch (const FVector2D StartIndex); // Pathfinding Algorithm - Breadth-First Search
+	void BreadthFirstSearch(const FVector2D StartIndex); // Pathfinding Algorithm - Breadth-First Search
+	void Dijkstra(const FVector2D StartIndex); // Pathfinding Algorithm - Dijkstra's
 	void AStar(); // Pathfinding Algorithm - A*
 };
