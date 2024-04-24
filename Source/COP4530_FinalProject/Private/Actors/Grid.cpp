@@ -20,7 +20,6 @@ AGrid::AGrid()
 	BillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("BillboardComponent"));
 	BillboardComponent->SetupAttachment(GetRootComponent());
 	BillboardComponent->SetWorldLocation(FVector(0.f, -700.f, 0.f));
-	BillboardComponent->EditorScale = .25f;
 	
 	// Create a UserWidget that stores the WBP
 	SelectionWidget = ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/UserInterfaces/WBP_AlgorithmsSelectionWidget")).Class;
