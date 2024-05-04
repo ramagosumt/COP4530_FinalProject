@@ -9,42 +9,36 @@
 #define PFC_OBSTACLE ECC_GameTraceChannel2
 
 enum class EGroundTypes : uint8;
+class UAlgorithmsSelectionWidget;
+class UBillboardComponent;
+class UGridTileTooltipWidget;
+class UStatisticsPanelWidget;
+class AGridTile;
+struct FPathfindingData;
 
 UENUM()
 enum class EGameMode : uint8
 {
 	EGM_DFS UMETA(DisplayName = "DFS"),
 	EGM_BFS UMETA(DisplayName= "BFS"),
-	EGM_Djikstra UMETA(DisplayName= "Djikstra"),
+	EGM_Dijkstra UMETA(DisplayName= "Dijkstra"),
 	EGM_AStar UMETA(DisplayName= "AStar"),
 	EGM_None UMETA(DisplayName= "None")
 };
-
-class UBillboardComponent;
-class AGridTile;
-class UAlgorithmsSelectionWidget;
-class UGridTileTooltipWidget;
-
-struct FPathfindingData;
 
 UCLASS()
 class COP4530_FINALPROJECT_API AGrid : public AActor
 {
 	GENERATED_BODY()
-
-	/** Actor Components */
-
+	
 	UPROPERTY()
 	USceneComponent* SceneComponent;
 
 	UPROPERTY(EditDefaultsOnly)
 	UBillboardComponent* BillboardComponent;
-
-	UPROPERTY()
-	UGridTileTooltipWidget* GridTileTooltipWidget;
 	
 public:
-
+	
 	UPROPERTY(EditInstanceOnly, Category= "Grid")
 	FVector GridLocation; // Map Center Location
 
@@ -84,10 +78,19 @@ public:
 	EGameMode GameMode;
 
 	UPROPERTY(VisibleInstanceOnly)
-	TSubclassOf<UUserWidget> SelectionWidget;
+	TSubclassOf<UUserWidget> DesiredSelectionWidget;
 
 	UPROPERTY(VisibleInstanceOnly)
-	TSubclassOf<UUserWidget> TooltipWidget;
+	TSubclassOf<UUserWidget> DesiredTooltipWidget;
+
+	UPROPERTY(VisibleInstanceOnly)
+	TSubclassOf<UUserWidget> DesiredStatisticsPanelWidget;
+
+	UPROPERTY()
+	UGridTileTooltipWidget* GridTileTooltipWidget;
+
+	UPROPERTY()
+	UStatisticsPanelWidget* StatisticsPanelWidget;
 
 	UPROPERTY(EditInstanceOnly, Category= "Debug")
 	FColor GridBoxColor;
@@ -119,16 +122,20 @@ public:
 	FORCEINLINE void SetGridTileTooltipWidget(UGridTileTooltipWidget* NewGridTileTooltipWidget) { GridTileTooltipWidget = NewGridTileTooltipWidget; }
 
 protected:
+
+	int32 CurrentPathIndex;
+	FTimerHandle PathHighlight;
+	bool bIsHighlightedModeOn;
 	
 	virtual void BeginPlay() override;
 
 	/** Grid Functions */
 	
-	FVector GridBottomLeft() const; // Calculate the Position of BottomLeft
-	void GridTileNumber(int32& X, int32& Y) const; // Calculate the Amount of Tiles
+	FVector GetGridBottomLeft() const; // Calculate the Position of BottomLeft
+	void GetGridTileNumbers(int32& NumHorizontalTiles, int32& NumVerticalTiles) const; // Calculate the Amount of Tiles
 	void DrawTile(); // Draw the Tiles
-	bool TraceSphere(ETraceTypeQuery TraceType, FHitResult& HitActor) const; // Trace the Spheres
-	void DebugGroundType(EGroundTypes GroundType, FVector GroundLocation);
+	bool TraceSphere(const ETraceTypeQuery TraceType, FHitResult& HitActor) const; // Trace the Spheres
+	void DebugGroundType(const EGroundTypes GroundType, const FVector GroundLocation);
 	void GenerateMapDataFromWorld();
 	void SpawnTiles(const bool SpawnNone);
 
@@ -141,6 +148,7 @@ protected:
 	void FindPathToTarget(const FVector2D StartIndex, const FVector2D TargetIndex);
 	TArray<FVector2D> RetracePath(const FVector2D StartIndex, const FVector2D TargetIndex);
 	void HighlightCurrentPath(const bool bIsForHighlighted);
+	void HighlightCurrentTile();
 
 	/** Pathfinding Algorithms
 	 * Depth-First Search [DFS]

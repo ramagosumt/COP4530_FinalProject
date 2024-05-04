@@ -37,8 +37,8 @@ void UAlgorithmsSelectionWidget::SetModeDijkstra()
 {
 	if (Grid)
 	{
-		Grid->GameMode = EGameMode::EGM_Djikstra;
-		GetGrid()->GetGridTileTooltipWidget()->SetGameMode(EGameMode::EGM_Djikstra);
+		Grid->GameMode = EGameMode::EGM_Dijkstra;
+		GetGrid()->GetGridTileTooltipWidget()->SetGameMode(EGameMode::EGM_Dijkstra);
 		Grid->ResetGrid();
 	}
 }

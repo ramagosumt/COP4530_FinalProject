@@ -16,7 +16,7 @@ void UGridTileTooltipWidget::NativeTick(const FGeometry& MyGeometry, float InDel
 		case EGameMode::EGM_BFS:
 			GameModeBlock->SetText(FText::FromString("BFS"));
 			break;
-		case EGameMode::EGM_Djikstra:
+		case EGameMode::EGM_Dijkstra:
 			GameModeBlock->SetText(FText::FromString("Dijkstra's"));
 			break;
 		case EGameMode::EGM_AStar:

@@ -7,6 +7,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "UserInterfaces/AlgorithmsSelectionWidget.h"
 #include "UserInterfaces/GridTileTooltipWidget.h"
+#include "UserInterfaces/StatisticsPanelWidget.h"
 
 AGrid::AGrid()
 {
@@ -22,8 +23,9 @@ AGrid::AGrid()
 	BillboardComponent->SetWorldLocation(FVector(0.f, -700.f, 0.f));
 	
 	// Create a UserWidget that stores the WBP
-	SelectionWidget = ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/UserInterfaces/WBP_AlgorithmsSelectionWidget")).Class;
-	TooltipWidget = ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/UserInterfaces/WBP_GridTileTooltipWidget")).Class;
+	DesiredSelectionWidget = ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/UserInterfaces/WBP_AlgorithmsSelectionWidget")).Class;
+	DesiredTooltipWidget = ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/UserInterfaces/WBP_GridTileTooltipWidget")).Class;
+	DesiredStatisticsPanelWidget = ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/UserInterfaces/WBP_StatisticsPanelWidget")).Class;
 
 	// Initialize Variables
 	GridLocation = FVector(0.f);
@@ -46,9 +48,9 @@ void AGrid::OnConstruction(const FTransform& Transform)
 	SetGridLocation(SceneComponent->GetComponentLocation());
 	
 	DrawDebugBox(GetWorld(), GridLocation, FVector(GridSizeWorld.Y, GridSizeWorld.X, 5.f), GridBoxColor, true, 1000000.f, 0.f, 10.f);
-	DrawDebugBox(GetWorld(), GridBottomLeft(), FVector(20.f), GridBottomLeftColor, true, 1000000.f, 0.f, 10.f);
+	DrawDebugBox(GetWorld(), GetGridBottomLeft(), FVector(20.f), GridBottomLeftColor, true, 1000000.f, 0.f, 10.f);
 
-	GridTileNumber(GridTileNumberX, GridTileNumberY);
+	GetGridTileNumbers(GridTileNumberX, GridTileNumberY);
 
 	GenerateMapDataFromWorld(); 
 
@@ -73,78 +75,134 @@ void AGrid::BeginPlay()
 	SpawnTiles(true);
 }
 
+/**
+ * Sets up and adds selection and tooltip widgets to the viewport.
+ * The selection widget allows the player to choose algorithms.
+ * The tooltip widget displays information about grid tiles.
+ */
 void AGrid::SetSelectionWidget()
 {
-	UAlgorithmsSelectionWidget* AlgorithmsSelectionWidget = CreateWidget<UAlgorithmsSelectionWidget>(GetWorld()->GetFirstPlayerController(), SelectionWidget);
-	AlgorithmsSelectionWidget->SetGrid(this);
-	AlgorithmsSelectionWidget->AddToViewport();
-	AlgorithmsSelectionWidget->bIsFocusable = false;
-	AlgorithmsSelectionWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	// Create and configure the selection widget
+	UAlgorithmsSelectionWidget* AlgorithmsSelectionWidget = CreateWidget<UAlgorithmsSelectionWidget>(GetWorld()->GetFirstPlayerController(), DesiredSelectionWidget);
+	AlgorithmsSelectionWidget->SetGrid(this); // Associate the grid instance with the selection widget
+	AlgorithmsSelectionWidget->AddToViewport(); // Add the selection widget to the viewport
+	AlgorithmsSelectionWidget->bIsFocusable = false; // Ensure the selection widget does not receive focus
+	AlgorithmsSelectionWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible); // Set the visibility of the selection widget
 
-	GridTileTooltipWidget = CreateWidget<UGridTileTooltipWidget>(GetWorld()->GetFirstPlayerController(), TooltipWidget);
-	GridTileTooltipWidget->SetGrid(this);
-	GridTileTooltipWidget->AddToViewport();
+	// Create and configure the tooltip widget
+	GridTileTooltipWidget = CreateWidget<UGridTileTooltipWidget>(GetWorld()->GetFirstPlayerController(), DesiredTooltipWidget);
+	GridTileTooltipWidget->SetGrid(this); // Associate the grid instance with the tooltip widget
+	GridTileTooltipWidget->AddToViewport(); // Add the tooltip widget to the viewport
+
+	// Create and configure the StatisticsPanel widget
+	StatisticsPanelWidget = CreateWidget<UStatisticsPanelWidget>(GetWorld()->GetFirstPlayerController(), DesiredStatisticsPanelWidget);
+	StatisticsPanelWidget->SetGrid(this); // Associate the grid instance with the tooltip widget
+	StatisticsPanelWidget->AddToViewport(); // Add the tooltip widget to the viewport
 }
 
-FVector AGrid::GridBottomLeft() const
+// Returns the bottom-left corner of the grid in world space
+FVector AGrid::GetGridBottomLeft() const
 {
-	// Movement = Move Direction * Move Length
-	const FVector MoveRight = SceneComponent->GetRightVector() * GridSizeWorld.X; // Move Horizontally
-	const FVector MoveUp = SceneComponent->GetForwardVector() * GridSizeWorld.Y; // Move Vertically
+	// Calculate horizontal and vertical offsets using the grid size
+	const FVector RightOffset  = SceneComponent->GetRightVector() * GridSizeWorld.X; // Offset horizontally by grid width
+	const FVector UpOffset = SceneComponent->GetForwardVector() * GridSizeWorld.Y; // Offset vertically by grid height
+
+	// Calculate the bottom-left corner of the grid
+	const FVector GridBottomLeft  = GridLocation - RightOffset - UpOffset;
 	
-	const FVector BottomLeft = GridLocation - MoveRight - MoveUp;
-	
-	return BottomLeft;
+	return GridBottomLeft;
 }
 
-void AGrid::GridTileNumber(int32& X, int32& Y) const 
+// Calculates and returns the number of tiles horizontally and vertically
+void AGrid::GetGridTileNumbers(int32& NumHorizontalTiles, int32& NumVerticalTiles) const	
 {
-	// Number of Tiles = Size of World / Size of Tiles
-	X = FMath::RoundToInt(GridSizeWorld.X / TileSize); // Horizontal Amount of Tiles
-	Y = FMath::RoundToInt(GridSizeWorld.Y / TileSize); // Vertical Amount of Tiles
+	// Calculate the number of tiles horizontally and vertically
+	NumHorizontalTiles = FMath::RoundToInt(GridSizeWorld.X / TileSize); // Number of tiles horizontally
+	NumVerticalTiles = FMath::RoundToInt(GridSizeWorld.Y / TileSize); // Number of tiles vertically
 }
 
+// Draws all tiles in the grid based on pathfinding map data
 void AGrid::DrawTile()
 {
+	// Retrieve the locations of all tiles in the map
 	TArray<FVector2D> Keys;
 	PathfindingMap.GetKeys(Keys);
 
-	for (const FVector2D K : Keys)
+	// Iterate through each key and draw the corresponding tile
+	for (const FVector2D& Key : Keys)
 	{
-		const FPathfindingData* CurrentData = PathfindingMap.Find(K);
-		DebugGroundType(CurrentData->GroundType, CurrentData->WorldLocation);
+		// Find the current pathfinding data based on the key
+		const FPathfindingData* CurrentData = PathfindingMap.Find(Key);
+		if (CurrentData) DebugGroundType(CurrentData->GroundType, CurrentData->WorldLocation);
 	}
 }
 
-bool AGrid::TraceSphere(ETraceTypeQuery TraceType, FHitResult& HitActor) const
+/**
+ * Performs a sphere trace in the world.
+ * @param TraceType The type of trace to perform.
+ * @param HitActor (out) Information about the hit result.
+ * @return True if a hit is detected, false otherwise.
+ */
+bool AGrid::TraceSphere(const ETraceTypeQuery TraceType, FHitResult& HitActor) const
 {
+	// List of actors to ignore during the trace
 	const TArray<AActor*> IgnoreActors;
-	
-	return UKismetSystemLibrary::SphereTraceSingle(GetWorld(), TilePosition, TilePosition, TileSize - TileSizeOffset, TraceType, false, IgnoreActors, EDrawDebugTrace::None, HitActor, true, FLinearColor::Red, FLinearColor::Green, 20.f);
+
+	// Perform the sphere trace and return the result
+	return UKismetSystemLibrary::SphereTraceSingle(
+			GetWorld(),
+			TilePosition, // Start position of the trace (center of the sphere)
+			TilePosition, // End position of the trace (also center of the sphere, no movement)
+			TileSize - TileSizeOffset, // Radius of the sphere
+			TraceType, // Type of trace to perform
+			false, // Do not trace complex collision
+			IgnoreActors, // Actors to ignore during the trace
+			EDrawDebugTrace::None, // No debug drawing
+			HitActor, // Hit result information
+			true, // Trace against complex collision
+			FLinearColor::Red, // Color of the debug trace
+			FLinearColor::Green, // Color of the hit result debug point
+			20.f // Duration of the debug display
+		);
 }
 
-void AGrid::DebugGroundType(EGroundTypes GroundType, FVector GroundLocation)
+/**
+ * Debugs the ground type by drawing a colored plane at the specified location.
+ * The color of the plane corresponds to the type of ground.
+ * @param GroundType The type of ground to debug.
+ * @param GroundLocation The location where the ground is located in the world.
+ */
+void AGrid::DebugGroundType(const EGroundTypes GroundType, const FVector GroundLocation)
 {
 	switch (GroundType)
 	{
 	case EGroundTypes::EGT_Normal:
-		TileColor = FColor::FromHex(FString("808080"));
+		TileColor = FColor::FromHex(FString("808080")); // Normal ground type represented by gray
 		break;
 	case EGroundTypes::EGT_Difficult:
-		TileColor = FColor::Turquoise;
+		TileColor = FColor::Turquoise; // Difficult ground type represented by turquoise
 		break;
 	case EGroundTypes::EGT_ReallyDifficult:
-		TileColor = FColor::FromHex(FString("FF8503"));
+		TileColor = FColor::FromHex(FString("FF8503")); // Really difficult ground type represented by orange
 		break;
 	case EGroundTypes::EGT_Impossible:
-		TileColor = FColor::FromHex(FString("8B0000"));
+		TileColor = FColor::FromHex(FString("8B0000")); // Impossible ground type represented by dark red
 		break;
 	case EGroundTypes::EGT_None:
-		TileColor = FColor::Blue;
-		return;
+		TileColor = FColor::Blue; // None ground type represented by blue
+		return; // Skip drawing
 	}
 
-	DrawDebugSolidPlane(GetWorld(), FPlane(0.f, 0.f, 1.f, TilePosition.Z), GroundLocation, TileSize - TileSizeOffset, TileColor, true, 5.f);
+	// Draw the tile in the corresponding color
+	DrawDebugSolidPlane(
+		GetWorld(),
+		FPlane(0.f, 0.f, 1.f, GroundLocation.Z),
+		GroundLocation,
+		TileSize - TileSizeOffset,
+		TileColor,
+		true,
+		5.f
+	);
 }
 
 void AGrid::GenerateMapDataFromWorld()
@@ -157,7 +215,7 @@ void AGrid::GenerateMapDataFromWorld()
 			const FVector DrawRight = SceneComponent->GetRightVector() * (TileSize + X * TileSize * 2); // Draw Horizontally
 			const FVector DrawUp = SceneComponent->GetForwardVector() * (TileSize + Y * TileSize * 2); // Draw Vertically
 			
-			TilePosition = GridBottomLeft() + DrawRight + DrawUp;
+			TilePosition = GetGridBottomLeft() + DrawRight + DrawUp;
 
 			FHitResult TraceHit;
 
@@ -220,57 +278,71 @@ void AGrid::GenerateMapDataFromWorld()
 	}
 }
 
+// Spawns tiles based on the pathfinding map data
+// If `SpawnNone` is true, tiles of type `EGroundTypes::EGT_None` will also be spawned
 void AGrid::SpawnTiles(const bool SpawnNone)
 {
+	// Retrieve the locations of all tiles in the map
 	TArray<FVector2D> Keys;
 	PathfindingMap.GetKeys(Keys);
 
-	for (const FVector2D K : Keys)
+	// Iterate through each key and spawn the corresponding tile
+	for (const FVector2D& Key : Keys)
 	{
-		FPathfindingData* CurrentData = PathfindingMap.Find(K);
+		// Find the current pathfinding data based on the key
+		FPathfindingData* CurrentData = PathfindingMap.Find(Key);
 
+		// Ensure the data is valid and determine if we should spawn the tile
 		if (CurrentData->GroundType != EGroundTypes::EGT_None || SpawnNone)
 		{
 			FTransform CurrentTransform(CurrentData->WorldLocation);
-		
-			AGridTile* GridTile = GetWorld()->SpawnActorDeferred<AGridTile>(AGridTile::StaticClass(), CurrentTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+			// Spawn the grid tile using deferred spawning
+			AGridTile* GridTile = GetWorld()->SpawnActorDeferred<AGridTile>(
+				AGridTile::StaticClass(),
+				CurrentTransform,
+				nullptr,
+				nullptr,
+				ESpawnActorCollisionHandlingMethod::AlwaysSpawn
+			);
+
+			// Finalize the spawning if the grid tile is valid
 			if (IsValid(GridTile))
 			{
 				GridTile->FinishSpawning(CurrentTransform);
 				GridTile->SetGrid(this);
 				GridTile->SetGridIndex(CurrentData->GridIndex);
 
+				// Associate the tile actor with the current data
 				CurrentData->TileActor = GridTile;
-				PathfindingMap.Add(K, *CurrentData);
+				PathfindingMap.Add(Key, *CurrentData);
 			}
 		}
 	}
 }
 
+// Calculates and returns the tile cost based on the ground type
 int32 AGrid::CalculateTileCost(const EGroundTypes GroundType)
 {
-	int32 Cost = 0;
+	constexpr int32 NormalCost = 1;
+	constexpr int32 DifficultCost = 2;
+	constexpr int32 ReallyDifficultCost = 5;
+	constexpr int32 HighCost = 999; // Used for "Impossible" and "None" types
 	
 	switch (GroundType)
 	{
 	case EGroundTypes::EGT_Normal:
-		Cost = 1;
-		break;
+		return NormalCost;
 	case EGroundTypes::EGT_Difficult:
-		Cost = 2;
-		break;
+		return DifficultCost;
 	case EGroundTypes::EGT_ReallyDifficult:
-		Cost = 5;
-		break;
+		return ReallyDifficultCost;
 	case EGroundTypes::EGT_Impossible:
-		Cost = 999;
-		break;
 	case EGroundTypes::EGT_None:
-		Cost = 999;
-		break;
+		return HighCost;
+	default:
+		return HighCost;
 	}
-	
-	return Cost;
 }
 
 void AGrid::ResetGrid()
@@ -307,6 +379,8 @@ void AGrid::HoverNewTile(AGridTile* TileToHover)
 	if (IsValid(SelectedTile) && IsValid(HoveredTile))
 	{
 		if (GridTileTooltipWidget) GridTileTooltipWidget->SetGridLocation(HoveredTile->GetGridIndex());
+		if (StatisticsPanelWidget) StatisticsPanelWidget->SetGridLocation(HoveredTile->GetGridIndex());
+		
 		switch (GameMode)
 		{
 		case EGameMode::EGM_DFS:
@@ -315,7 +389,7 @@ void AGrid::HoverNewTile(AGridTile* TileToHover)
 		case EGameMode::EGM_BFS:
 			BreadthFirstSearch(SelectedTile->GetGridIndex());
 			break;
-		case EGameMode::EGM_Djikstra:
+		case EGameMode::EGM_Dijkstra:
 			break;
 		case EGameMode::EGM_AStar:
 			FindPathToTarget(SelectedTile->GetGridIndex(), HoveredTile->GetGridIndex());
@@ -364,6 +438,8 @@ void AGrid::FindPathToTarget(const FVector2D StartIndex, const FVector2D TargetI
 	{
 		if (TargetTileData->GroundType != EGroundTypes::EGT_None && TargetTileData->GroundType != EGroundTypes::EGT_Impossible)
 		{
+			StatisticsPanelWidget->SetIsAValidDestination(true);
+			
 			for (const FVector2D K : Keys)
 			{
 				FPathfindingData* CurrentData = PathfindingMap.Find(K);
@@ -465,6 +541,7 @@ void AGrid::FindPathToTarget(const FVector2D StartIndex, const FVector2D TargetI
 				}
 			}
 		}
+		else StatisticsPanelWidget->SetIsAValidDestination(false);
 	}
 }
 
@@ -487,12 +564,43 @@ TArray<FVector2D> AGrid::RetracePath(const FVector2D StartIndex, const FVector2D
 
 void AGrid::HighlightCurrentPath(const bool bIsForHighlighted)
 {
-	for (const FVector2D P : PathToTarget)
+	CurrentPathIndex = 0;
+	bIsHighlightedModeOn = bIsForHighlighted;
+
+	if (bIsForHighlighted) GetWorld()->GetTimerManager().SetTimer(PathHighlight, this, &AGrid::HighlightCurrentTile, 0.05f);
+	else
 	{
-		if (IsValid(PathfindingMap.Find(P)->TileActor))
+		for (const FVector2D P : PathToTarget)
 		{
-			PathfindingMap.Find(P)->TileActor->IsInPath(bIsForHighlighted);
+			if (IsValid(PathfindingMap.Find(P)->TileActor))
+			{
+				PathfindingMap.Find(P)->TileActor->IsInPath(bIsForHighlighted);
+			}
 		}
+	}
+}
+
+void AGrid::HighlightCurrentTile()
+{
+	if (CurrentPathIndex >= PathToTarget.Num())
+	{
+		CurrentPathIndex = 0;
+		return;
+	}
+
+	const FVector2D CurrentTile = PathToTarget[CurrentPathIndex];
+	const FPathfindingData* CurrentTileData = PathfindingMap.Find(CurrentTile);
+
+	if (CurrentTileData && CurrentTileData->TileActor)
+	{
+		CurrentTileData->TileActor->IsInPath(bIsHighlightedModeOn);
+	}
+
+	CurrentPathIndex++;
+
+	if (CurrentPathIndex <= PathToTarget.Num())
+	{
+		GetWorld()->GetTimerManager().SetTimer(PathHighlight, this, &AGrid::HighlightCurrentTile, 0.05f);
 	}
 }
 
@@ -500,77 +608,95 @@ void AGrid::HighlightCurrentPath(const bool bIsForHighlighted)
  * Performs a depth-first search starting from the given tile index.
  * @param StartIndex The index of the tile to start the search from.
  */
-
 void AGrid::DepthFirstSearch(const FVector2D StartIndex)
 {
-	// Create a stack to store visited tiles
-	TArray<FVector2D> Stack;
-	Stack.Add(StartIndex);
-
-	// Clear the last path
-	PathToTarget.Empty();
-
-	// Reset pathfinding data for all tiles
-	TArray<FVector2D> Keys;
-	PathfindingMap.GetKeys(Keys);
-
-	const FPathfindingData* HoveredTileData = PathfindingMap.Find(HoveredTile->GetGridIndex());
-	
-	if (HoveredTileData && HoveredTileData->GroundType != EGroundTypes::EGT_None && HoveredTileData->GroundType != EGroundTypes::EGT_Impossible)
+	if (IsValid(PathfindingMap.Find(StartIndex)->TileActor))
 	{
-		for (const FVector2D K : Keys)
+		// Get the starting execution time using FPlatformTime Cycles
+		const uint64 StartCycles = FPlatformTime::Cycles64();
+		
+		// Create a stack to store visiting tiles
+		TArray<FVector2D> Stack;
+		Stack.Add(StartIndex);
+
+		int32 NumberofNodesVisited = 0;
+
+		// Clear the previous path to target
+		PathToTarget.Empty();
+
+		/* Reset pathfinding data for all tiles, ensuring they are unvisited and without previous tiles. */
+	    
+	    // Retrieve the locations of all tiles in the map
+		TArray<FVector2D> Keys;
+		PathfindingMap.GetKeys(Keys);
+
+		const FPathfindingData* HoveredTileData = PathfindingMap.Find(HoveredTile->GetGridIndex());
+		
+	    // Check if the hovered tile is valid and traversable
+		if (HoveredTileData && HoveredTileData->GroundType != EGroundTypes::EGT_None && HoveredTileData->GroundType != EGroundTypes::EGT_Impossible)
 		{
-			FPathfindingData* CurrentData = PathfindingMap.Find(K);
-			if (CurrentData)
+			StatisticsPanelWidget->SetIsAValidDestination(true);
+			
+	        // If yes, traverse all tiles in the map and reset their respective data
+			for (const FVector2D K : Keys)
 			{
-				CurrentData->PreviousTile = FVector2D(0.f, 0.f);
-				CurrentData->bVisited = false;
+				FPathfindingData* CurrentData = PathfindingMap.Find(K);
+				if (CurrentData)
+				{
+					// Reset previous tile data to (0.0, 0.0) and mark as unvisited
+					CurrentData->PreviousTile = FVector2D(0.f, 0.f);
+					CurrentData->bVisited = false;
+				}
 			}
 		}
-	}
-	
-	// Mark the starting tile as visited
-	FPathfindingData* StartIndexData = PathfindingMap.Find(StartIndex);
-	if (StartIndexData)
-	{
-		StartIndexData->PreviousTile = FVector2D(0.f, 0.f);
-		StartIndexData->bVisited = false;
-	}
-
-	// Run depth-first search
-	while (Stack.Num() > 0)
-	{
-		// Pop the top tile from the stack
-		const FVector2D CurrentTile = Stack.Pop();
-		FPathfindingData* CurrentTileData = PathfindingMap.Find(CurrentTile);
-
-		if (CurrentTileData)
+		else StatisticsPanelWidget->SetIsAValidDestination(false);
+		
+		// Locate and prepare the starting tile
+		FPathfindingData* StartIndexData = PathfindingMap.Find(StartIndex);
+		if (StartIndexData)
 		{
-			// Mark the current tile as visited
-			CurrentTileData->bVisited = true;
-
-			// Check if the current tile is the target tile
-			if (CurrentTileData->GridIndex == HoveredTile->GetGridIndex())
-			{
-				// If target tile found, retrace the path and return
-				PathToTarget = RetracePath(StartIndex, HoveredTile->GetGridIndex());
-				return;
-			}
+			// Reset previous tile data to (0.0, 0.0) and mark as unvisited
+			StartIndexData->PreviousTile = FVector2D(0.f, 0.f);
+			StartIndexData->bVisited = false;
 		}
 
-		// Get possible neighboring tiles from the current tile
-		TArray<FVector2D> PossibleNeighbors = GetTileNeighbors(CurrentTile);
-		for (const FVector2D Neighbor : PossibleNeighbors)
+		// Run depth-first search
+		while (Stack.Num() > 0)
 		{
-			const FVector2D CurrentNeighbor = Neighbor;
-			FPathfindingData* CurrentNeighborData = PathfindingMap.Find(CurrentNeighbor);
-			if (CurrentNeighborData)
+			// Locating the current tile within the map 
+			const FVector2D CurrentTile = Stack.Pop();
+			FPathfindingData* CurrentTileData = PathfindingMap.Find(CurrentTile);
+
+			if (CurrentTileData && !CurrentTileData->bVisited)
 			{
-				if (CurrentNeighborData->bVisited != true)
+				// Mark the current tile as visited
+				CurrentTileData->bVisited = true;
+				NumberofNodesVisited++;
+
+				// Check if the current tile is the target tile
+				if (CurrentTileData->GridIndex == HoveredTile->GetGridIndex())
+				{
+					// If target tile found, retrace the path and return
+					const uint64 EndCycles = FPlatformTime::Cycles64();
+					const float Timespan = FPlatformTime::ToSeconds64(EndCycles - StartCycles) * 1000;
+					PathToTarget = RetracePath(StartIndex, HoveredTile->GetGridIndex());
+					StatisticsPanelWidget->SetNumberOfNodes(NumberofNodesVisited);
+					StatisticsPanelWidget->SetExecuteTime(Timespan);
+					return;
+				}
+			}
+
+			// Explore all possible neighboring tiles from the current tile
+			TArray<FVector2D> PossibleNeighbors = GetTileNeighbors(CurrentTile);
+			for (const FVector2D Neighbor : PossibleNeighbors)
+			{
+	            // Visit each neighboring tile
+				FPathfindingData* NeighborData = PathfindingMap.Find(Neighbor);
+				if (NeighborData && !NeighborData->bVisited && NeighborData->GroundType != EGroundTypes::EGT_None && NeighborData->GroundType != EGroundTypes::EGT_Impossible)
 				{
 					// Mark the neighbor as visited, set its previous tile, and add it to the stack
-					CurrentNeighborData->PreviousTile = CurrentTile;
-					Stack.Add(CurrentNeighbor);
+					NeighborData->PreviousTile = CurrentTile;
+					Stack.Add(Neighbor);
 				}
 			}
 		}
@@ -581,74 +707,102 @@ void AGrid::DepthFirstSearch(const FVector2D StartIndex)
  * Performs a breadth-first search starting from the given tile index.
  * @param StartIndex The index of the tile to start the search from.
  */
-
 void AGrid::BreadthFirstSearch(const FVector2D StartIndex)
 {
-	// Create a queue to store visited tiles
-	TQueue<FVector2D> VisitedTiles;
-	VisitedTiles.Enqueue(StartIndex);
+	// Get the starting execution time using FPlatformTime Cycles
+	const uint64 StartCycles = FPlatformTime::Cycles64();
+	
+	// Create a queue to store visiting tiles
+	TQueue<FVector2D> VisitingTiles;
+	VisitingTiles.Enqueue(StartIndex);
 
-	// Clear the last path
+	int32 NumberofNodesVisited = 0;
+
+	// Clear the previous path to target
 	PathToTarget.Empty();
 
-	// Reset pathfinding data for all tiles
+	/* Reset pathfinding data for all tiles, ensuring they are unvisited and without previous tiles. */
+
+	// Retrieve the locations of all tiles in the map
 	TArray<FVector2D> Keys;
 	PathfindingMap.GetKeys(Keys);
 
 	const FPathfindingData* HoveredTileData = PathfindingMap.Find(HoveredTile->GetGridIndex());
-	
+
+	// Check if the hovered tile is valid and traversable
 	if (HoveredTileData && HoveredTileData->GroundType != EGroundTypes::EGT_None && HoveredTileData->GroundType != EGroundTypes::EGT_Impossible)
 	{
+		StatisticsPanelWidget->SetIsAValidDestination(true);
+		
+		// If yes, traverse all tiles in the map and reset their respective data
 		for (const FVector2D K : Keys)
 		{
 			FPathfindingData* CurrentData = PathfindingMap.Find(K);
 			if (CurrentData)
 			{
+				// Reset previous tile data to (0.0, 0.0) and mark as unvisited
 				CurrentData->PreviousTile = FVector2D(0.f, 0.f);
 				CurrentData->bVisited = false;
 			}
 		}
 	}
+	else StatisticsPanelWidget->SetIsAValidDestination(false);
 	
-	// Mark the starting tile as visited
+	// Locate and prepare the starting tile
 	FPathfindingData* StartIndexData = PathfindingMap.Find(StartIndex);
 	if (StartIndexData)
 	{
+		// Reset previous tile data to (0.0, 0.0) and mark as unvisited
 		StartIndexData->PreviousTile = FVector2D(0.f, 0.f);
 		StartIndexData->bVisited = false;
 	}
 
 	// Run breadth-first search
-	while (!VisitedTiles.IsEmpty())
+	while (!VisitingTiles.IsEmpty())
 	{
-		// Initialize the current tile with the head of the queue, then dequeue it
+		// Locating the current tile within the map
 		FVector2D CurrentTile;
-		VisitedTiles.Dequeue(CurrentTile);
+		VisitingTiles.Dequeue(CurrentTile);
 
 		// Check if the current tile is the target tile
-		const FPathfindingData* CurrentTileData = PathfindingMap.Find(CurrentTile);
-		if (CurrentTileData->GridIndex == HoveredTile->GetGridIndex())
+		FPathfindingData* CurrentTileData = PathfindingMap.Find(CurrentTile);
+		if (CurrentTileData && !CurrentTileData->bVisited)
 		{
-			PathToTarget = RetracePath(StartIndex, HoveredTile->GetGridIndex());
-			for (const FVector2D P : PathToTarget) PathfindingMap.Find(P)->bVisited = false;
-			return;
+			// Mark the current tile as visited
+			CurrentTileData->bVisited = true;
+			NumberofNodesVisited++;
+
+			// Check if the current tile is the target tile
+			if (CurrentTileData->GridIndex == HoveredTile->GetGridIndex())
+			{
+				// If target tile found, retrace the path and return
+				const uint64 EndCycles = FPlatformTime::Cycles64();
+				const float Timespan = FPlatformTime::ToSeconds64(EndCycles - StartCycles) * 1000;
+				PathToTarget = RetracePath(StartIndex, HoveredTile->GetGridIndex());
+				StatisticsPanelWidget->SetNumberOfNodes(NumberofNodesVisited);
+				StatisticsPanelWidget->SetExecuteTime(Timespan);
+				return;
+			}
 		}
 
-		// Get possible neighboring tiles from the current tile
+		// Explore all possible neighboring tiles from the current tile
 		TArray<FVector2D> PossibleNeighbors = GetTileNeighbors(CurrentTile);
 		for (const FVector2D Neighbor : PossibleNeighbors)
 		{
-			// Check if the neighbor is valid and not visited;
+			// Visit each neighboring tile
 			FPathfindingData* NeighborData = PathfindingMap.Find(Neighbor);
 			if (NeighborData && !NeighborData->bVisited)
 			{
-				// Mark the neighbor as visited, set its previous tile, and enqueue it
+				// Mark the neighbor as visited, set its previous tile, and add it to the queue
 				NeighborData->PreviousTile = CurrentTile;
-				NeighborData->bVisited = true;
-				VisitedTiles.Enqueue(Neighbor);
+				VisitingTiles.Enqueue(Neighbor);
 			}
 		}
 	}
+}
+
+void AGrid::Dijkstra(const FVector2D StartIndex)
+{
 }
 
 void AGrid::AStar()

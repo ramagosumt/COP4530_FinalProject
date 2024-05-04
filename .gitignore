@@ -53,6 +53,7 @@ Plugins/*/Binaries/*
 # Builds
 Build/*
 nmt3_mai247_FinalProject_GUI/*
+nmt3_mai247_FinalProject_CLI/*
 
 # Whitelist PakBlacklist-<BuildConfiguration>.txt files
 !Build/*/
