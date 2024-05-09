@@ -72,6 +72,8 @@ void AGridTile::SetTileColor() const
 
 	// If hovered, brighten up the tile
 	if (bIsHovered) TileColor = UKismetMathLibrary::Conv_LinearColorToColor(UKismetMathLibrary::Conv_VectorToLinearColor(3 * UKismetMathLibrary::Conv_LinearColorToVector(UKismetMathLibrary::Conv_ColorToLinearColor(TileColor))));
+
+	if (bIsExploring) TileColor = FColor::Yellow;
 	
 	if (bIsInPath) TileColor = FColor::Purple;
 	
@@ -118,6 +120,12 @@ void AGridTile::DehoverTile()
 void AGridTile::IsInPath(bool bInPath)
 {
 	bIsInPath = bInPath;
+	SetTileColor();
+}
+
+void AGridTile::IsExploring(bool bExploring)
+{
+	bIsExploring = bExploring;
 	SetTileColor();
 }
 

@@ -37,6 +37,7 @@ public:
 	void HoverTile();
 	void DehoverTile();
 	void IsInPath(bool bInPath);
+	void IsExploring (bool bExploring);
 	void DebugOpenSet() const;
 	void DebugClosedSet() const;
 
@@ -60,6 +61,7 @@ protected:
 	bool bIsHovered;
 	bool bIsSelected;
 	bool bIsInPath;
+	bool bIsExploring;
 	
 	virtual void BeginPlay() override;
 

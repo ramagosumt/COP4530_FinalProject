@@ -378,7 +378,7 @@ void AGrid::HoverNewTile(AGridTile* TileToHover)
 
 	if (IsValid(SelectedTile) && IsValid(HoveredTile))
 	{
-		if (GridTileTooltipWidget) GridTileTooltipWidget->SetGridLocation(HoveredTile->GetGridIndex());
+		if (GridTileTooltipWidget) GridTileTooltipWidget->SetTargetLocation(HoveredTile->GetGridIndex());
 		if (StatisticsPanelWidget) StatisticsPanelWidget->SetGridLocation(HoveredTile->GetGridIndex());
 		
 		switch (GameMode)
@@ -398,14 +398,14 @@ void AGrid::HoverNewTile(AGridTile* TileToHover)
 			break;
 		}
 		
-		HighlightCurrentPath(true);
+		HighlightExploringPath(true);
 	}
 }
 
 TArray<FVector2D> AGrid::GetTileNeighbors(const FVector2D GridIndex)
 {
 	TArray<FVector2D> OutNeighbors;
-	TArray<FVector2D> PossibleNeighbors = {FVector2D(0.f, 1.f), FVector2D(1.f, 0.f), FVector2D(0.f, -1.f), FVector2D(-1.f, 0.f)};
+	TArray<FVector2D> PossibleNeighbors = {FVector2D(-1.f, 0.f), FVector2D(0.f, -1.f), FVector2D(1.f, 0.f), FVector2D(0.f, 1.f)};
 
 	for (FVector2D Neighbor : PossibleNeighbors)
 	{
@@ -604,12 +604,58 @@ void AGrid::HighlightCurrentTile()
 	}
 }
 
+void AGrid::HighlightExploringPath(const bool bIsForHighlighted)
+{
+	CurrentPathIndex = 0;
+	bIsHighlightedModeOn = bIsForHighlighted;
+	
+	if (bIsForHighlighted) GetWorld()->GetTimerManager().SetTimer(PathExplore, this, &AGrid::HighlightExploringTile, 0.05f);
+	else
+	{
+		for (const auto& Key : ExploringPath)
+		{
+			const FVector2D Location = Key.Value;
+			if (IsValid(PathfindingMap.Find(Location)->TileActor))
+			{
+				PathfindingMap.Find(Location)->TileActor->IsExploring(bIsHighlightedModeOn);
+			}
+		}
+	}
+}
+
+void AGrid::HighlightExploringTile()
+{
+	if (CurrentPathIndex >= ExploringPath.Num())
+	{
+		CurrentPathIndex = 0;
+		HighlightCurrentPath(true);
+		return;
+	}
+
+	const FVector2D* Location = ExploringPath.Find(CurrentPathIndex);
+	const FVector2D CurrentTile = *Location;
+	const FPathfindingData* CurrentTileData = PathfindingMap.Find(CurrentTile);
+
+	if (CurrentTileData && CurrentTileData->TileActor)
+	{
+		CurrentTileData->TileActor->IsExploring(bIsHighlightedModeOn);
+	}
+
+	CurrentPathIndex++;
+
+	if (CurrentPathIndex <= ExploringPath.Num())
+	{
+		GetWorld()->GetTimerManager().SetTimer(PathExplore, this, &AGrid::HighlightExploringTile, 0.125f);
+	}
+}
+
 /**
  * Performs a depth-first search starting from the given tile index.
  * @param StartIndex The index of the tile to start the search from.
  */
 void AGrid::DepthFirstSearch(const FVector2D StartIndex)
 {
+	// Ensure the starting tile is valid
 	if (IsValid(PathfindingMap.Find(StartIndex)->TileActor))
 	{
 		// Get the starting execution time using FPlatformTime Cycles
@@ -619,12 +665,14 @@ void AGrid::DepthFirstSearch(const FVector2D StartIndex)
 		TArray<FVector2D> Stack;
 		Stack.Add(StartIndex);
 
-		int32 NumberofNodesVisited = 0;
+		int32 ExploringLevel = 0;
+
+		// Initialize the number of nodes visited
+		int32 NumberOfNodesVisited = 0;
 
 		// Clear the previous path to target
 		PathToTarget.Empty();
-
-		/* Reset pathfinding data for all tiles, ensuring they are unvisited and without previous tiles. */
+		ExploringPath.Empty();
 	    
 	    // Retrieve the locations of all tiles in the map
 		TArray<FVector2D> Keys;
@@ -671,7 +719,9 @@ void AGrid::DepthFirstSearch(const FVector2D StartIndex)
 			{
 				// Mark the current tile as visited
 				CurrentTileData->bVisited = true;
-				NumberofNodesVisited++;
+				NumberOfNodesVisited++;
+				ExploringPath.Add(ExploringLevel, CurrentTile);
+				ExploringLevel++;
 
 				// Check if the current tile is the target tile
 				if (CurrentTileData->GridIndex == HoveredTile->GetGridIndex())
@@ -680,7 +730,7 @@ void AGrid::DepthFirstSearch(const FVector2D StartIndex)
 					const uint64 EndCycles = FPlatformTime::Cycles64();
 					const float Timespan = FPlatformTime::ToSeconds64(EndCycles - StartCycles) * 1000;
 					PathToTarget = RetracePath(StartIndex, HoveredTile->GetGridIndex());
-					StatisticsPanelWidget->SetNumberOfNodes(NumberofNodesVisited);
+					StatisticsPanelWidget->SetNumberOfNodes(NumberOfNodesVisited);
 					StatisticsPanelWidget->SetExecuteTime(Timespan);
 					return;
 				}
@@ -716,10 +766,14 @@ void AGrid::BreadthFirstSearch(const FVector2D StartIndex)
 	TQueue<FVector2D> VisitingTiles;
 	VisitingTiles.Enqueue(StartIndex);
 
-	int32 NumberofNodesVisited = 0;
+	int32 ExploringLevel = 0;
+
+	// Initialize the number of nodes visited
+	int32 NumberOfNodesVisited = 0;
 
 	// Clear the previous path to target
 	PathToTarget.Empty();
+	ExploringPath.Empty();
 
 	/* Reset pathfinding data for all tiles, ensuring they are unvisited and without previous tiles. */
 
@@ -770,7 +824,9 @@ void AGrid::BreadthFirstSearch(const FVector2D StartIndex)
 		{
 			// Mark the current tile as visited
 			CurrentTileData->bVisited = true;
-			NumberofNodesVisited++;
+			NumberOfNodesVisited++;
+			ExploringPath.Add(ExploringLevel, CurrentTile);
+			ExploringLevel++;
 
 			// Check if the current tile is the target tile
 			if (CurrentTileData->GridIndex == HoveredTile->GetGridIndex())
@@ -779,7 +835,7 @@ void AGrid::BreadthFirstSearch(const FVector2D StartIndex)
 				const uint64 EndCycles = FPlatformTime::Cycles64();
 				const float Timespan = FPlatformTime::ToSeconds64(EndCycles - StartCycles) * 1000;
 				PathToTarget = RetracePath(StartIndex, HoveredTile->GetGridIndex());
-				StatisticsPanelWidget->SetNumberOfNodes(NumberofNodesVisited);
+				StatisticsPanelWidget->SetNumberOfNodes(NumberOfNodesVisited);
 				StatisticsPanelWidget->SetExecuteTime(Timespan);
 				return;
 			}

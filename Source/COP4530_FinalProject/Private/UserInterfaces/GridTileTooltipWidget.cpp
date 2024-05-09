@@ -27,6 +27,6 @@ void UGridTileTooltipWidget::NativeTick(const FGeometry& MyGeometry, float InDel
 		}
 
 		StartIndex->SetText(FText::Format(FText::FromString("Start Location: {0}, {1}"), FText::AsNumber(StartLocation.X), FText::AsNumber(StartLocation.Y)));
-		GridIndex->SetText(FText::Format(FText::FromString("Grid Location: {0}, {1}"), FText::AsNumber(GridLocation.X), FText::AsNumber(GridLocation.Y)));
+		TargetIndex->SetText(FText::Format(FText::FromString("Target Location: {0}, {1}"), FText::AsNumber(TargetLocation.X), FText::AsNumber(TargetLocation.Y)));
 	}
 }

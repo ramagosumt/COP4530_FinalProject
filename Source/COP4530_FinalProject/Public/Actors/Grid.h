@@ -66,6 +66,9 @@ public:
 	UPROPERTY(VisibleInstanceOnly, Category= "Grid")
 	TMap<FVector2D, FPathfindingData> PathfindingMap;
 
+	UPROPERTY(VisibleInstanceOnly, Category= "Grid")
+	TMap<int32, FVector2D> ExploringPath;
+
 	UPROPERTY(VisibleInstanceOnly)
 	AGridTile* SelectedTile;
 
@@ -125,6 +128,7 @@ protected:
 
 	int32 CurrentPathIndex;
 	FTimerHandle PathHighlight;
+	FTimerHandle PathExplore;
 	bool bIsHighlightedModeOn;
 	
 	virtual void BeginPlay() override;
@@ -149,6 +153,8 @@ protected:
 	TArray<FVector2D> RetracePath(const FVector2D StartIndex, const FVector2D TargetIndex);
 	void HighlightCurrentPath(const bool bIsForHighlighted);
 	void HighlightCurrentTile();
+	void HighlightExploringPath(const bool bIsForHighlighted);
+	void HighlightExploringTile();
 
 	/** Pathfinding Algorithms
 	 * Depth-First Search [DFS]

@@ -27,7 +27,7 @@ class COP4530_FINALPROJECT_API UGridTileTooltipWidget : public UUserWidget
 	FVector2D StartLocation;
 
 	UPROPERTY(VisibleInstanceOnly, Category= "Grid")
-	FVector2D GridLocation;
+	FVector2D TargetLocation;
 
 public:
 
@@ -38,7 +38,7 @@ public:
 	UTextBlock* StartIndex;
 	
 	UPROPERTY(meta=(BindWidget))
-	UTextBlock* GridIndex;
+	UTextBlock* TargetIndex;
 
 	FORCEINLINE AGrid* GetGrid() const { return Grid; };
 	FORCEINLINE void SetGrid(AGrid* NewGrid) { Grid = NewGrid; }
@@ -46,8 +46,8 @@ public:
 	FORCEINLINE void SetGameMode(const EGameMode NewGameMode) { GameMode = NewGameMode; }
 	FORCEINLINE FVector2D GetStartLocation() const { return StartLocation; };
 	FORCEINLINE void SetStartLocation(const FVector2D NewStartLocation) { StartLocation = NewStartLocation; }
-	FORCEINLINE FVector2D GetGridLocation() const { return GridLocation; };
-	FORCEINLINE void SetGridLocation(const FVector2D NewGridLocation) { GridLocation = NewGridLocation; }
+	FORCEINLINE FVector2D GetTargetLocation() const { return TargetLocation; };
+	FORCEINLINE void SetTargetLocation(const FVector2D NewTargetLocation) { TargetLocation = NewTargetLocation; }
 
 protected:
 	
