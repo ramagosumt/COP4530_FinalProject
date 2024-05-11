@@ -36,7 +36,7 @@ void AGridTile::BeginPlay()
 	
 }
 
-void AGridTile::SetTile() const
+void AGridTile::SetTile()
 {
 	SetTileColor();
 	SetTileSize();
@@ -86,9 +86,9 @@ void AGridTile::SetTileSize() const
 	StaticMeshComponent->SetWorldScale3D(FVector(NewScale.X, NewScale.Y, 1.f));
 }
 
-void AGridTile::SetTileWidget() const
+void AGridTile::SetTileWidget()
 {
-	UGridTileWidget* GridTileWidget = Cast<UGridTileWidget>(WidgetComponent->GetUserWidgetObject());
+	GridTileWidget = Cast<UGridTileWidget>(WidgetComponent->GetUserWidgetObject());
 	GridTileWidget->SetGrid(GetGrid());
 	GridTileWidget->SetGridIndex(GetGridIndex());
 }
@@ -117,16 +117,18 @@ void AGridTile::DehoverTile()
 	SetTileColor();
 }
 
-void AGridTile::IsInPath(bool bInPath)
+void AGridTile::IsInPath(const bool bInPath)
 {
 	bIsInPath = bInPath;
 	SetTileColor();
+	ResetTileState();
 }
 
-void AGridTile::IsExploring(bool bExploring)
+void AGridTile::IsExploring(const bool bExploring)
 {
 	bIsExploring = bExploring;
 	SetTileColor();
+	ResetTileState();
 }
 
 void AGridTile::DebugOpenSet() const
@@ -137,6 +139,11 @@ void AGridTile::DebugOpenSet() const
 void AGridTile::DebugClosedSet() const
 {
 	StaticMeshComponent->SetVectorParameterValueOnMaterials(FName("TileColor"), UKismetMathLibrary::Conv_LinearColorToVector(UKismetMathLibrary::Conv_ColorToLinearColor(FColor::Blue)));
+}
+
+void AGridTile::ResetTileState() const
+{
+	GridTileWidget->SetTileState();
 }
 
 void AGridTile::NotifyActorBeginCursorOver()

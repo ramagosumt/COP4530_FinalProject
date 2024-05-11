@@ -31,10 +31,15 @@ public:
 	UPROPERTY(meta=(BindWidget))
 	UTextBlock* IndividualCost;
 
+	UPROPERTY(meta=(BindWidget))
+	UTextBlock* TileState;
+
 	FORCEINLINE AGrid* GetGrid() const { return Grid; };
 	FORCEINLINE void SetGrid(AGrid* NewGrid) { Grid = NewGrid; } 
 	FORCEINLINE FVector2D GetGridIndex() const { return GridIndex; };
 	FORCEINLINE void SetGridIndex(const FVector2D NewGridIndex) { GridIndex = NewGridIndex; }
+
+	void SetTileState() const;
 
 protected:
 	

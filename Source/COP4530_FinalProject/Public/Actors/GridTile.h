@@ -36,10 +36,11 @@ public:
 	void DeselectTile();
 	void HoverTile();
 	void DehoverTile();
-	void IsInPath(bool bInPath);
-	void IsExploring (bool bExploring);
+	void IsInPath(const bool bInPath);
+	void IsExploring (const bool bExploring);
 	void DebugOpenSet() const;
 	void DebugClosedSet() const;
+	void ResetTileState() const;
 
 	FORCEINLINE AGrid* GetGrid() const { return Grid; };
 	FORCEINLINE void SetGrid(AGrid* NewGrid) { Grid = NewGrid; } 
@@ -58,6 +59,9 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, Category= "Grid")
 	FVector2D GridIndex;
 
+	UPROPERTY(VisibleInstanceOnly, Category= "Grid")
+	UGridTileWidget* GridTileWidget;
+
 	bool bIsHovered;
 	bool bIsSelected;
 	bool bIsInPath;
@@ -65,9 +69,9 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-	void SetTile() const;
+	void SetTile();
 	void SetTileSize() const;
-	void SetTileWidget() const;
+	void SetTileWidget();
 	
 	virtual void NotifyActorBeginCursorOver() override;
 	virtual void NotifyActorEndCursorOver() override;

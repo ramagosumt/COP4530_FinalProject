@@ -375,11 +375,19 @@ void AGrid::HoverNewTile(AGridTile* TileToHover)
 	if (IsValid(HoveredTile)) if (!IsValid(SelectedTile)) if (GridTileTooltipWidget) GridTileTooltipWidget->SetStartLocation(HoveredTile->GetGridIndex());
 
 	HighlightCurrentPath(false);
+	HighlightExploringPath(false);
 
 	if (IsValid(SelectedTile) && IsValid(HoveredTile))
 	{
 		if (GridTileTooltipWidget) GridTileTooltipWidget->SetTargetLocation(HoveredTile->GetGridIndex());
 		if (StatisticsPanelWidget) StatisticsPanelWidget->SetGridLocation(HoveredTile->GetGridIndex());
+		
+		for (const auto& Key : ExploringPath)
+		{
+			const FVector2D Location = Key.Value;
+			if (IsValid(PathfindingMap.Find(Location)->TileActor)) PathfindingMap.Find(Location)->bVisited = false;
+			if (IsValid(PathfindingMap.Find(Location)->TileActor)) PathfindingMap.Find(Location)->TileActor->ResetTileState();
+		}
 		
 		switch (GameMode)
 		{
@@ -572,10 +580,7 @@ void AGrid::HighlightCurrentPath(const bool bIsForHighlighted)
 	{
 		for (const FVector2D P : PathToTarget)
 		{
-			if (IsValid(PathfindingMap.Find(P)->TileActor))
-			{
-				PathfindingMap.Find(P)->TileActor->IsInPath(bIsForHighlighted);
-			}
+			if (IsValid(PathfindingMap.Find(P)->TileActor)) PathfindingMap.Find(P)->TileActor->IsInPath(bIsForHighlighted);
 		}
 	}
 }
@@ -591,17 +596,12 @@ void AGrid::HighlightCurrentTile()
 	const FVector2D CurrentTile = PathToTarget[CurrentPathIndex];
 	const FPathfindingData* CurrentTileData = PathfindingMap.Find(CurrentTile);
 
-	if (CurrentTileData && CurrentTileData->TileActor)
-	{
-		CurrentTileData->TileActor->IsInPath(bIsHighlightedModeOn);
-	}
+	if (CurrentTileData && CurrentTileData->TileActor) CurrentTileData->TileActor->IsInPath(bIsHighlightedModeOn);
 
 	CurrentPathIndex++;
 
-	if (CurrentPathIndex <= PathToTarget.Num())
-	{
-		GetWorld()->GetTimerManager().SetTimer(PathHighlight, this, &AGrid::HighlightCurrentTile, 0.05f);
-	}
+	if (CurrentPathIndex <= PathToTarget.Num()) GetWorld()->GetTimerManager().SetTimer(PathHighlight, this, &AGrid::HighlightCurrentTile, 0.05f);
+	
 }
 
 void AGrid::HighlightExploringPath(const bool bIsForHighlighted)
@@ -615,10 +615,7 @@ void AGrid::HighlightExploringPath(const bool bIsForHighlighted)
 		for (const auto& Key : ExploringPath)
 		{
 			const FVector2D Location = Key.Value;
-			if (IsValid(PathfindingMap.Find(Location)->TileActor))
-			{
-				PathfindingMap.Find(Location)->TileActor->IsExploring(bIsHighlightedModeOn);
-			}
+			if (IsValid(PathfindingMap.Find(Location)->TileActor)) PathfindingMap.Find(Location)->TileActor->IsExploring(bIsHighlightedModeOn);
 		}
 	}
 }
@@ -636,17 +633,11 @@ void AGrid::HighlightExploringTile()
 	const FVector2D CurrentTile = *Location;
 	const FPathfindingData* CurrentTileData = PathfindingMap.Find(CurrentTile);
 
-	if (CurrentTileData && CurrentTileData->TileActor)
-	{
-		CurrentTileData->TileActor->IsExploring(bIsHighlightedModeOn);
-	}
+	if (CurrentTileData && CurrentTileData->TileActor) CurrentTileData->TileActor->IsExploring(bIsHighlightedModeOn);
 
 	CurrentPathIndex++;
 
-	if (CurrentPathIndex <= ExploringPath.Num())
-	{
-		GetWorld()->GetTimerManager().SetTimer(PathExplore, this, &AGrid::HighlightExploringTile, 0.125f);
-	}
+	if (CurrentPathIndex <= ExploringPath.Num()) GetWorld()->GetTimerManager().SetTimer(PathExplore, this, &AGrid::HighlightExploringTile, 0.125f);
 }
 
 /**
