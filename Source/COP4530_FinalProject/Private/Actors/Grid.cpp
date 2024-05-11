@@ -7,6 +7,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "UserInterfaces/AlgorithmsSelectionWidget.h"
 #include "UserInterfaces/GridTileTooltipWidget.h"
+#include "UserInterfaces/InformationBoardWidget.h"
 #include "UserInterfaces/StatisticsPanelWidget.h"
 
 AGrid::AGrid()
@@ -26,6 +27,7 @@ AGrid::AGrid()
 	DesiredSelectionWidget = ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/UserInterfaces/WBP_AlgorithmsSelectionWidget")).Class;
 	DesiredTooltipWidget = ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/UserInterfaces/WBP_GridTileTooltipWidget")).Class;
 	DesiredStatisticsPanelWidget = ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/UserInterfaces/WBP_StatisticsPanelWidget")).Class;
+	DesiredInformationBoardWidget = ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/UserInterfaces/WBP_InformationBoardWidget")).Class;
 
 	// Initialize Variables
 	GridLocation = FVector(0.f);
@@ -96,8 +98,13 @@ void AGrid::SetSelectionWidget()
 
 	// Create and configure the StatisticsPanel widget
 	StatisticsPanelWidget = CreateWidget<UStatisticsPanelWidget>(GetWorld()->GetFirstPlayerController(), DesiredStatisticsPanelWidget);
-	StatisticsPanelWidget->SetGrid(this); // Associate the grid instance with the tooltip widget
-	StatisticsPanelWidget->AddToViewport(); // Add the tooltip widget to the viewport
+	StatisticsPanelWidget->SetGrid(this); // Associate the grid instance with the panel widget
+	StatisticsPanelWidget->AddToViewport(); // Add the panel widget to the viewport
+
+	// Create and configure the InformationBoard widget
+	InformationBoardWidget = CreateWidget<UInformationBoardWidget>(GetWorld()->GetFirstPlayerController(), DesiredInformationBoardWidget);
+	InformationBoardWidget->SetGrid(this); // Associate the grid instance with the board widget
+	InformationBoardWidget->AddToViewport(); // Add the board widget to the viewport
 }
 
 // Returns the bottom-left corner of the grid in world space

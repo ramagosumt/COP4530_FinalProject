@@ -4,9 +4,9 @@
 #include "GameFramework/Actor.h"
 #include "GridTile.generated.h"
 
-class AGrid;
-class UWidgetComponent;
 class UGridTileWidget;
+class UWidgetComponent;
+class AGrid;
 
 UCLASS()
 class COP4530_FINALPROJECT_API AGridTile : public AActor

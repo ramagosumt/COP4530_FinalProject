@@ -2,6 +2,7 @@
 #include "Components/Button.h"
 #include "Actors/Grid.h"
 #include "UserInterfaces/GridTileTooltipWidget.h"
+#include "UserInterfaces/InformationBoardWidget.h"
 
 void UAlgorithmsSelectionWidget::NativeConstruct()
 {
@@ -19,6 +20,7 @@ void UAlgorithmsSelectionWidget::SetModeDepthFirstSearch()
 	{
 		Grid->GameMode = EGameMode::EGM_DFS;
 		GetGrid()->GetGridTileTooltipWidget()->SetGameMode(EGameMode::EGM_DFS);
+		GetGrid()->GetInformationBoardWidget()->SetGameMode(EGameMode::EGM_DFS);
 		Grid->ResetGrid();
 	}
 }
@@ -29,6 +31,7 @@ void UAlgorithmsSelectionWidget::SetModeBreadthFirstSearch()
 	{
 		Grid->GameMode = EGameMode::EGM_BFS;
 		GetGrid()->GetGridTileTooltipWidget()->SetGameMode(EGameMode::EGM_BFS);
+		GetGrid()->GetInformationBoardWidget()->SetGameMode(EGameMode::EGM_BFS);
 		Grid->ResetGrid();
 	}
 }
@@ -39,6 +42,7 @@ void UAlgorithmsSelectionWidget::SetModeDijkstra()
 	{
 		Grid->GameMode = EGameMode::EGM_Dijkstra;
 		GetGrid()->GetGridTileTooltipWidget()->SetGameMode(EGameMode::EGM_Dijkstra);
+		GetGrid()->GetInformationBoardWidget()->SetGameMode(EGameMode::EGM_Dijkstra);
 		Grid->ResetGrid();
 	}
 }
@@ -49,6 +53,7 @@ void UAlgorithmsSelectionWidget::SetModeAStar()
 	{
 		Grid->GameMode = EGameMode::EGM_AStar;
 		GetGrid()->GetGridTileTooltipWidget()->SetGameMode(EGameMode::EGM_AStar);
+		GetGrid()->GetInformationBoardWidget()->SetGameMode(EGameMode::EGM_AStar);
 		Grid->ResetGrid();
 	}
 }

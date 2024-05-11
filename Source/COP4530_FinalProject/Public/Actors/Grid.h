@@ -12,6 +12,7 @@ enum class EGroundTypes : uint8;
 class UAlgorithmsSelectionWidget;
 class UBillboardComponent;
 class UGridTileTooltipWidget;
+class UInformationBoardWidget;
 class UStatisticsPanelWidget;
 class AGridTile;
 struct FPathfindingData;
@@ -89,11 +90,17 @@ public:
 	UPROPERTY(VisibleInstanceOnly)
 	TSubclassOf<UUserWidget> DesiredStatisticsPanelWidget;
 
+	UPROPERTY(VisibleInstanceOnly)
+	TSubclassOf<UUserWidget> DesiredInformationBoardWidget;
+
 	UPROPERTY()
 	UGridTileTooltipWidget* GridTileTooltipWidget;
 
 	UPROPERTY()
 	UStatisticsPanelWidget* StatisticsPanelWidget;
+
+	UPROPERTY()
+	UInformationBoardWidget* InformationBoardWidget;
 
 	UPROPERTY(EditInstanceOnly, Category= "Debug")
 	FColor GridBoxColor;
@@ -123,6 +130,8 @@ public:
 	
 	FORCEINLINE UGridTileTooltipWidget* GetGridTileTooltipWidget() const { return GridTileTooltipWidget; };
 	FORCEINLINE void SetGridTileTooltipWidget(UGridTileTooltipWidget* NewGridTileTooltipWidget) { GridTileTooltipWidget = NewGridTileTooltipWidget; }
+	FORCEINLINE UInformationBoardWidget* GetInformationBoardWidget() const { return InformationBoardWidget; };
+	FORCEINLINE void SetInformationBoardWidget(UInformationBoardWidget* NewInformationBoardWidget) { InformationBoardWidget = NewInformationBoardWidget; }
 
 protected:
 
