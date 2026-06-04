@@ -1,16 +1,18 @@
 # Pathfinding Visualizer
 
-### Unreal Engine 5 | C++ | A* and Dijkstra Visualization Framework
+### Unreal Engine 4 | C++ | A* and Dijkstra Visualization Framework
 
-This project is an interactive pathfinding visualization tool developed in Unreal Engine 5 as part of COP 4530 (Data Structures & Algorithms).
+This project is an interactive pathfinding visualization tool developed in Unreal Engine 4 as part of COP 4530 (Data Structures & Algorithms).
 
 The application allows users to generate grid-based environments, place obstacles, and visualize the execution of pathfinding algorithms in real time. Rather than focusing solely on algorithm implementation, the project emphasizes visualization, user interaction, and system architecture for educational and debugging purposes.
+
+* **Video:** [Pathfinding Visualization Demo](https://youtu.be/Ik0knJoJvKk)
 
 ---
 
 # Programming Portfolio Notes
 
-This repository is submitted as a programming portfolio sample focused on algorithm implementation, visualization, and interactive tool development in Unreal Engine 5.
+This repository is submitted as a programming portfolio sample focused on algorithm implementation, visualization, and interactive tool development in Unreal Engine 4.
 
 The project demonstrates my ability to combine classical computer science concepts with real-time visualization systems and custom user interfaces.
 
@@ -241,7 +243,7 @@ Recommended files to inspect first:
 
 Requirements:
 
-- Unreal Engine 5
+- Unreal Engine 4
 - Visual Studio 2022
 
 Setup:
